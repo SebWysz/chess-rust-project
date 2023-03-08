@@ -4,7 +4,7 @@ Group Members:
 Sebastian Wyszynski : sww6  
 Connor Macauley : connor19  
 Mark Raskin : mrask2  
-Sam  
+Sam : stinubu2
 
 ##### Introduction: 
 We are going to implement chess in Rust. Goals for this project include working with UI and registering mouse clicks
