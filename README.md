@@ -15,19 +15,19 @@ project because we like to play chess, and it would be only appropriate to inclu
 Checkpoint 1:
 Set up the board to look somewhat aesthetically pleasing with a checker pattern.  
 Have pieces that look like the chess pieces i.e. knight looks like a horse.  
-Implement the pieces' ability to move. 
-Include a turn function so one person can't move twice in a row;
+Implement the pieces' ability to move.  
+Include a turn function so one person can't move twice in a row.  
 
 Checkpoint 2:
 Make sure the pieces can only move how they can in chess (can't drag them to any square).  
-Include castling and en passant.
-Make the game end in a stalemate when the king has no legal moves and is not in check.
-Make the game end in a win/loss when the king has no legal moves and is in check.
+Include castling and en passant.  
+Make the game end in a stalemate when the king has no legal moves and is not in check.  
+Make the game end in a win/loss when the king has no legal moves and is in check.  
 
-If parts of these checkpoints aren't complete, we leave the time after checkpoint 2 to make up for lost progress.
-If we happen to be on schedule, we may look into a timer function for each player's moves.
+If parts of these checkpoints aren't complete, we leave the time after checkpoint 2 to make up for lost progress.  
+If we happen to be on schedule, we may look into a timer function for each player's moves.  
 
 ##### Possible Challenges: 
-Learning how to work with a UI in Rust.
-How objects interact with each other.
-How to display the board and working with user mouse input.
+Learning how to work with a UI in Rust.  
+How objects interact with each other.  
+How to display the board and working with user mouse input.  
