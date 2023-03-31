@@ -1,0 +1,12 @@
+C:\UIUC_CS\rust\chess-rust-project\chess-rust-project\target\debug\deps\thiserror_impl-49462d6b8077c88b.dll: C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\lib.rs C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\ast.rs C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\attr.rs C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\expand.rs C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\fmt.rs C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\generics.rs C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\prop.rs C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\valid.rs
+
+C:\UIUC_CS\rust\chess-rust-project\chess-rust-project\target\debug\deps\thiserror_impl-49462d6b8077c88b.d: C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\lib.rs C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\ast.rs C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\attr.rs C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\expand.rs C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\fmt.rs C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\generics.rs C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\prop.rs C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\valid.rs
+
+C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\lib.rs:
+C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\ast.rs:
+C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\attr.rs:
+C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\expand.rs:
+C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\fmt.rs:
+C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\generics.rs:
+C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\prop.rs:
+C:\Users\sebwy\.cargo\registry\src\github.com-1ecc6299db9ec823\thiserror-impl-1.0.40\src\valid.rs:
