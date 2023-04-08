@@ -27,7 +27,6 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
                 Color::rgb(0.949, 0.8235, 0.741176)
             };
 
-            
             commands.spawn(SpriteBundle {
                 sprite: Sprite{
                     color: tile_color,
