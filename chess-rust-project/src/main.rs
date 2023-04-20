@@ -8,11 +8,45 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_startup_system(spawn_camera)
         .add_startup_system(setup_board)
+        .add_system(mouse_click_system)
         .run();
 }
 
 const TILE_SIZE: f32 = 80.0;
 const BOARD_SIZE: usize = 8;
+
+#[derive(Component)]
+struct White;
+
+#[derive(Component)]
+struct Black;
+
+#[derive(Component)]
+struct Position {
+    x : f32,
+    y : f32,
+}
+
+#[derive(Component)]
+struct Pawn;
+
+#[derive(Component)]
+struct King;
+
+#[derive(Component)]
+struct Queen;
+
+#[derive(Component)]
+struct Rook;
+
+#[derive(Component)]
+struct Bishop;
+
+#[derive(Component)]
+struct Knight;
+
+#[derive(Resource)]
+struct SelectedPiece { entity: Entity }
 
 fn setup_board(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>, asset_server: Res<AssetServer>) {
     let window = window_query.get_single().unwrap();
@@ -38,7 +72,6 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
                     row as f32 * TILE_SIZE + vert_displacement,
                     0.0,
                 ),
-                //texture: asset_server.load("sprites/chess-piece-sprites.png"),
                 ..default()
             });
         }
@@ -47,7 +80,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
     // First pawns
     for col in 0..BOARD_SIZE {
         //black pawns
-        commands.spawn(SpriteBundle {
+        commands.spawn((SpriteBundle {
             transform: Transform::from_xyz(
                 col as f32 * TILE_SIZE + horiz_displacement,
                 6. * TILE_SIZE + vert_displacement,
@@ -55,9 +88,13 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             ).with_scale(Vec3::new(0.25,0.25,1.)),
             texture: asset_server.load("sprites/Bpawn.png"),
             ..default()
-        });
+        },
+        Black {},
+        Pawn {},
+        Position {x: col as f32, y: 6.}
+    ));
         //white pawns
-        commands.spawn(SpriteBundle {
+        commands.spawn((SpriteBundle {
             transform: Transform::from_xyz(
                 col as f32 * TILE_SIZE + horiz_displacement,
                 1. * TILE_SIZE + vert_displacement,
@@ -65,10 +102,15 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             ).with_scale(Vec3::new(0.25,0.25,1.)),
             texture: asset_server.load("sprites/Wpawn.png"),
             ..default()
-        });
+        },
+        White {},
+        Pawn {},
+        Position {x: col as f32, y: 1.},
+    ));
     }
+
     //kings
-    commands.spawn(SpriteBundle {
+    commands.spawn((SpriteBundle {
         transform: Transform::from_xyz(
             4. * TILE_SIZE + horiz_displacement,
             0. * TILE_SIZE + vert_displacement,
@@ -76,9 +118,12 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
         ).with_scale(Vec3::new(0.25,0.25,1.)),
         texture: asset_server.load("sprites/Wking.png"),
         ..default()
-    });
-
-    commands.spawn(SpriteBundle {
+        },
+        White {},
+        King {},
+        Position {x: 4., y: 0.},
+    ));
+    commands.spawn((SpriteBundle {
         transform: Transform::from_xyz(
             4. * TILE_SIZE + horiz_displacement,
             7. * TILE_SIZE + vert_displacement,
@@ -86,9 +131,14 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
         ).with_scale(Vec3::new(0.25,0.25,1.)),
         texture: asset_server.load("sprites/Bking.png"),
         ..default()
-    });
+        },
+        Black {},
+        King {},
+        Position {x: 4., y: 7.},
+    ));
+
     //queens
-    commands.spawn(SpriteBundle {
+    commands.spawn((SpriteBundle {
         transform: Transform::from_xyz(
             3. * TILE_SIZE + horiz_displacement,
             0. * TILE_SIZE + vert_displacement,
@@ -96,8 +146,12 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
         ).with_scale(Vec3::new(0.25,0.25,1.)),
         texture: asset_server.load("sprites/Wqueen.png"),
         ..default()
-    });
-    commands.spawn(SpriteBundle {
+        },
+        White {},
+        Queen {},
+        Position {x: 3., y: 0.},
+    ));
+    commands.spawn((SpriteBundle {
         transform: Transform::from_xyz(
             3. * TILE_SIZE + horiz_displacement,
             7. * TILE_SIZE + vert_displacement,
@@ -105,10 +159,15 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
         ).with_scale(Vec3::new(0.25,0.25,1.)),
         texture: asset_server.load("sprites/Bqueen.png"),
         ..default()
-    });
+        },
+        Black {},
+        Queen {},
+        Position {x: 3., y: 7.},
+    ));
+
     //Bishops
     for col in 0..2 {
-        commands.spawn(SpriteBundle {
+        commands.spawn((SpriteBundle {
             transform: Transform::from_xyz(
                 (col as f32 * 3. + 2.) * TILE_SIZE + horiz_displacement,
                 7. * TILE_SIZE + vert_displacement,
@@ -116,8 +175,12 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             ).with_scale(Vec3::new(0.25,0.25,1.)),
             texture: asset_server.load("sprites/Bbishop.png"),
             ..default()
-        });
-        commands.spawn(SpriteBundle {
+            },
+            Black {},
+            Bishop {},
+            Position {x: (col as f32 * 3. + 2.), y: 7.},
+        ));
+        commands.spawn((SpriteBundle {
             transform: Transform::from_xyz(
                 (col as f32 * 3. + 2.) * TILE_SIZE + horiz_displacement,
                 0. * TILE_SIZE + vert_displacement,
@@ -125,11 +188,16 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             ).with_scale(Vec3::new(0.25,0.25,1.)),
             texture: asset_server.load("sprites/Wbishop.png"),
             ..default()
-        });
+            },
+            White {},
+            Bishop {},
+            Position {x: (col as f32 * 3. + 2.), y: 0.},
+        ));
     }
+
     // Knights
     for col in 0..2 {
-        commands.spawn(SpriteBundle {
+        commands.spawn((SpriteBundle {
             transform: Transform::from_xyz(
                 (col as f32 * 5. + 1.) * TILE_SIZE + horiz_displacement,
                 7. * TILE_SIZE + vert_displacement,
@@ -137,8 +205,12 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             ).with_scale(Vec3::new(0.25,0.25,1.)),
             texture: asset_server.load("sprites/Bhorse.png"),
             ..default()
-        });
-        commands.spawn(SpriteBundle {
+            },
+            Black {},
+            Knight {},
+            Position {x: (col as f32 * 5. + 1.), y: 7.},
+        ));
+        commands.spawn((SpriteBundle {
             transform: Transform::from_xyz(
                 (col as f32 * 5. + 1.) * TILE_SIZE + horiz_displacement,
                 0. * TILE_SIZE + vert_displacement,
@@ -146,11 +218,16 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             ).with_scale(Vec3::new(0.25,0.25,1.)),
             texture: asset_server.load("sprites/Whorse.png"),
             ..default()
-        });
+            },
+            White {},
+            Knight {},
+            Position {x: (col as f32 * 5. + 1.), y: 0.},
+        ));
     }
+
     // Rooks
     for col in 0..2 {
-        commands.spawn(SpriteBundle {
+        commands.spawn((SpriteBundle {
             transform: Transform::from_xyz(
                 (col as f32 * 7.) * TILE_SIZE + horiz_displacement,
                 7. * TILE_SIZE + vert_displacement,
@@ -158,8 +235,12 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             ).with_scale(Vec3::new(0.25,0.25,1.)),
             texture: asset_server.load("sprites/Brook.png"),
             ..default()
-        });
-        commands.spawn(SpriteBundle {
+            },
+            Black {},
+            Rook {},
+            Position {x: (col as f32 * 7.), y: 7.},
+        ));
+        commands.spawn((SpriteBundle {
             transform: Transform::from_xyz(
                 (col as f32 * 7.) * TILE_SIZE + horiz_displacement,
                 0. * TILE_SIZE + vert_displacement,
@@ -167,9 +248,12 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             ).with_scale(Vec3::new(0.25,0.25,1.)),
             texture: asset_server.load("sprites/Wrook.png"),
             ..default()
-        });
+            },
+            White {},
+            Rook {},
+            Position {x: (col as f32 * 7.), y: 0.},
+        ));
     }
-
 }
 
 pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
@@ -178,4 +262,48 @@ pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<Pr
         transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
         ..default()
     });
+}
+
+fn mouse_click_system(
+    mouse_button_input: Res<Input<MouseButton>>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    piece_query: Query<&mut Transform, With<Position>>,
+    selection: Res<SelectedPiece>,
+) {
+    let window = window_query.get_single().unwrap();
+    
+    piece_query.get_component(entity)
+
+    if mouse_button_input.just_pressed(MouseButton::Left) {
+        info!("Left mouse button just pressed");
+        
+        let mouse_tile = find_mouse_tile(window.cursor_position().unwrap(), window);
+        info!("{}", mouse_tile);
+        
+        // Deal with input not on the board by doing nothing as a result
+        if mouse_tile[0] < BOARD_SIZE as f32 && mouse_tile[0] > 0. && mouse_tile[1] < BOARD_SIZE as f32 && mouse_tile[1] > 0. {
+            // if selected piece is picked up, set it down
+            
+            // if piece is already picked up, do nothing (or error noise? blinking red or something)
+            
+            // if piece occupies the square, pick piece "up"
+            // piece_query.for_each(|piece| if ())
+        }
+    }
+
+    // if mouse_button_input.just_released(MouseButton::Left) {
+    //     info!("Left mouse button just released");
+    //     info!("{}", window.cursor_position().unwrap());
+    // }
+}
+
+pub fn find_mouse_tile(mut input : Vec2, window : &Window) -> Vec2 {
+    let horiz_displacement = window.width() / 2. - TILE_SIZE * 4.;
+    let vert_displacement = window.height() / 2. - TILE_SIZE * 4.;
+    
+    input[0] = f32::floor((input[0] - horiz_displacement) / TILE_SIZE);
+    input[1] = f32::floor((input[1] - vert_displacement) / TILE_SIZE);
+
+    // return is 0 indexed!
+    return input
 }
