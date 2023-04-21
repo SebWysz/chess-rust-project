@@ -282,6 +282,11 @@ fn mouse_click_system(
             // if piece is already picked up/invalid move square, do nothing (or error noise? blinking red or something)
             match curr_piece_query.get_single_mut() {
                 Ok((curr_entity, mut curr_trans, mut curr_pos, _curr_sel_piece)) => {
+                    for (entity, _transform, position) in piece_query.into_iter() {
+                        if position.x == mouse_tile[0] && position.y == mouse_tile[1] {
+                            commands.entity(entity).despawn();
+                        }
+                    }
                     let direction = Vec3::new((mouse_tile[0] - curr_pos.x) * TILE_SIZE,
                                                     (mouse_tile[1] - curr_pos.y) * TILE_SIZE, 
                                                     0.);
