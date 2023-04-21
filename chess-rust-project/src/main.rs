@@ -1,7 +1,7 @@
 //Activate Clippy, helps with proper formatting
 #![deny(clippy::all)]
 
-use bevy::{prelude::*, window::PrimaryWindow};
+use bevy::{prelude::*, window::PrimaryWindow, ecs::entity, transform};
 
 fn main() {
     App::new()
@@ -16,12 +16,15 @@ const TILE_SIZE: f32 = 80.0;
 const BOARD_SIZE: usize = 8;
 
 #[derive(Component)]
+struct CurrentSelectedPiece;
+
+#[derive(Component)]
 struct White;
 
 #[derive(Component)]
 struct Black;
 
-#[derive(Component)]
+#[derive(PartialEq, Component)]
 struct Position {
     x : f32,
     y : f32,
@@ -44,9 +47,6 @@ struct Bishop;
 
 #[derive(Component)]
 struct Knight;
-
-#[derive(Resource)]
-struct SelectedPiece { entity: Entity }
 
 fn setup_board(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>, asset_server: Res<AssetServer>) {
     let window = window_query.get_single().unwrap();
@@ -267,34 +267,39 @@ pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<Pr
 fn mouse_click_system(
     mouse_button_input: Res<Input<MouseButton>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
-    piece_query: Query<&mut Transform, With<Position>>,
-    selection: Res<SelectedPiece>,
+    piece_query: Query<(Entity, &mut Transform, &mut Position), Without<CurrentSelectedPiece>>,
+    mut curr_piece_query: Query<(Entity, &mut Transform, &mut Position, &CurrentSelectedPiece)>,
+    mut commands: Commands,
 ) {
     let window = window_query.get_single().unwrap();
     
-    piece_query.get_component(entity)
-
     if mouse_button_input.just_pressed(MouseButton::Left) {
-        info!("Left mouse button just pressed");
-        
         let mouse_tile = find_mouse_tile(window.cursor_position().unwrap(), window);
-        info!("{}", mouse_tile);
         
-        // Deal with input not on the board by doing nothing as a result
-        if mouse_tile[0] < BOARD_SIZE as f32 && mouse_tile[0] > 0. && mouse_tile[1] < BOARD_SIZE as f32 && mouse_tile[1] > 0. {
-            // if selected piece is picked up, set it down
-            
-            // if piece is already picked up, do nothing (or error noise? blinking red or something)
-            
+        // Deal with input not on the board by doing nothing
+        if mouse_tile[0] < BOARD_SIZE as f32 && mouse_tile[0] >= 0. && mouse_tile[1] < BOARD_SIZE as f32 && mouse_tile[1] >= 0. {
+            // if selected piece is picked up, set it down at the tile
+            // if piece is already picked up/invalid move square, do nothing (or error noise? blinking red or something)
+            match curr_piece_query.get_single_mut() {
+                Ok((curr_entity, mut curr_trans, mut curr_pos, _curr_sel_piece)) => {
+                    let direction = Vec3::new((mouse_tile[0] - curr_pos.x) * TILE_SIZE,
+                                                    (mouse_tile[1] - curr_pos.y) * TILE_SIZE, 
+                                                    0.);
+                    curr_pos.x = mouse_tile[0];
+                    curr_pos.y = mouse_tile[1];
+                    curr_trans.translation += direction;
+                    commands.entity(curr_entity).remove::<CurrentSelectedPiece>();
+                },
+                Err(_) => 
+                    for (entity, _transform, position) in piece_query.into_iter() {
+                        if position.x == mouse_tile[0] && position.y == mouse_tile[1] {
+                            commands.entity(entity).insert(CurrentSelectedPiece); //BIG BIG BIG
+                        }
+                    }
+            }
             // if piece occupies the square, pick piece "up"
-            // piece_query.for_each(|piece| if ())
         }
     }
-
-    // if mouse_button_input.just_released(MouseButton::Left) {
-    //     info!("Left mouse button just released");
-    //     info!("{}", window.cursor_position().unwrap());
-    // }
 }
 
 pub fn find_mouse_tile(mut input : Vec2, window : &Window) -> Vec2 {
