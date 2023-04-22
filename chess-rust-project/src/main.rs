@@ -19,10 +19,24 @@ const BOARD_SIZE: usize = 8;
 struct CurrentSelectedPiece;
 
 #[derive(Component)]
-struct White;
+struct Piece {
+    color : PieceColor,
+    piece_type : PieceType,
+}
 
-#[derive(Component)]
-struct Black;
+enum PieceColor {
+    White,
+    Black,
+}
+
+enum PieceType {
+    Pawn,
+    King,
+    Queen,
+    Rook,
+    Bishop,
+    Knight,
+}
 
 #[derive(PartialEq, Component)]
 struct Position {
@@ -30,23 +44,6 @@ struct Position {
     y : f32,
 }
 
-#[derive(Component)]
-struct Pawn;
-
-#[derive(Component)]
-struct King;
-
-#[derive(Component)]
-struct Queen;
-
-#[derive(Component)]
-struct Rook;
-
-#[derive(Component)]
-struct Bishop;
-
-#[derive(Component)]
-struct Knight;
 
 fn setup_board(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>, asset_server: Res<AssetServer>) {
     let window = window_query.get_single().unwrap();
@@ -89,8 +86,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             texture: asset_server.load("sprites/Bpawn.png"),
             ..default()
         },
-        Black {},
-        Pawn {},
+        Piece{color : PieceColor::Black, piece_type : PieceType::Pawn},
         Position {x: col as f32, y: 6.}
     ));
         //white pawns
@@ -103,8 +99,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             texture: asset_server.load("sprites/Wpawn.png"),
             ..default()
         },
-        White {},
-        Pawn {},
+        Piece{color : PieceColor::White, piece_type : PieceType::Pawn},
         Position {x: col as f32, y: 1.},
     ));
     }
@@ -119,8 +114,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
         texture: asset_server.load("sprites/Wking.png"),
         ..default()
         },
-        White {},
-        King {},
+        Piece{color : PieceColor::White, piece_type : PieceType::King},
         Position {x: 4., y: 0.},
     ));
     commands.spawn((SpriteBundle {
@@ -132,8 +126,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
         texture: asset_server.load("sprites/Bking.png"),
         ..default()
         },
-        Black {},
-        King {},
+        Piece{color : PieceColor::Black, piece_type : PieceType::King},
         Position {x: 4., y: 7.},
     ));
 
@@ -147,8 +140,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
         texture: asset_server.load("sprites/Wqueen.png"),
         ..default()
         },
-        White {},
-        Queen {},
+        Piece{color : PieceColor::White, piece_type : PieceType::Queen},
         Position {x: 3., y: 0.},
     ));
     commands.spawn((SpriteBundle {
@@ -160,8 +152,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
         texture: asset_server.load("sprites/Bqueen.png"),
         ..default()
         },
-        Black {},
-        Queen {},
+        Piece{color : PieceColor::Black, piece_type : PieceType::Queen},
         Position {x: 3., y: 7.},
     ));
 
@@ -176,8 +167,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             texture: asset_server.load("sprites/Bbishop.png"),
             ..default()
             },
-            Black {},
-            Bishop {},
+            Piece{color : PieceColor::Black, piece_type : PieceType::Bishop},
             Position {x: (col as f32 * 3. + 2.), y: 7.},
         ));
         commands.spawn((SpriteBundle {
@@ -189,8 +179,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             texture: asset_server.load("sprites/Wbishop.png"),
             ..default()
             },
-            White {},
-            Bishop {},
+            Piece{color : PieceColor::White, piece_type : PieceType::Bishop},
             Position {x: (col as f32 * 3. + 2.), y: 0.},
         ));
     }
@@ -206,8 +195,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             texture: asset_server.load("sprites/Bhorse.png"),
             ..default()
             },
-            Black {},
-            Knight {},
+            Piece{color : PieceColor::Black, piece_type : PieceType::Knight},
             Position {x: (col as f32 * 5. + 1.), y: 7.},
         ));
         commands.spawn((SpriteBundle {
@@ -219,8 +207,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             texture: asset_server.load("sprites/Whorse.png"),
             ..default()
             },
-            White {},
-            Knight {},
+            Piece{color : PieceColor::White, piece_type : PieceType::Knight},
             Position {x: (col as f32 * 5. + 1.), y: 0.},
         ));
     }
@@ -236,8 +223,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             texture: asset_server.load("sprites/Brook.png"),
             ..default()
             },
-            Black {},
-            Rook {},
+            Piece{color : PieceColor::Black, piece_type : PieceType::Rook},
             Position {x: (col as f32 * 7.), y: 7.},
         ));
         commands.spawn((SpriteBundle {
@@ -249,8 +235,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             texture: asset_server.load("sprites/Wrook.png"),
             ..default()
             },
-            White {},
-            Rook {},
+            Piece{color : PieceColor::White, piece_type : PieceType::Rook},
             Position {x: (col as f32 * 7.), y: 0.},
         ));
     }
@@ -267,8 +252,8 @@ pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<Pr
 fn mouse_click_system(
     mouse_button_input: Res<Input<MouseButton>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
-    piece_query: Query<(Entity, &mut Transform, &mut Position), Without<CurrentSelectedPiece>>,
-    mut curr_piece_query: Query<(Entity, &mut Transform, &mut Position, &CurrentSelectedPiece)>,
+    piece_query: Query<(Entity, &mut Transform, &mut Position, &Piece), Without<CurrentSelectedPiece>>,
+    mut curr_piece_query: Query<(Entity, &mut Transform, &mut Position, &Piece, &CurrentSelectedPiece)>,
     mut commands: Commands,
 ) {
     let window = window_query.get_single().unwrap();
@@ -279,9 +264,21 @@ fn mouse_click_system(
         // Deal with input not on the board by doing nothing
         if mouse_tile[0] < BOARD_SIZE as f32 && mouse_tile[0] >= 0. && mouse_tile[1] < BOARD_SIZE as f32 && mouse_tile[1] >= 0. {
             // if selected piece is picked up, set it down at the tile
-            // if piece is already picked up/invalid move square, do nothing (or error noise? blinking red or something)
+            // if piece is already picked up/invalid move square, do nothing (todo! or error noise? blinking red or something) 
             match curr_piece_query.get_single_mut() {
-                Ok((curr_entity, mut curr_trans, mut curr_pos, _curr_sel_piece)) => {
+                // has piece picked up
+                Ok((curr_entity, mut curr_trans, mut curr_pos, piece_qual, _curr_sel_piece)) => {
+                    if !(valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &piece_query).contains(&mouse_tile)) {
+                        // insert error noise or blinking? to signal wrong move
+                        return;
+                    }
+                    // Then if it is a valid tile, move the piece there
+                    for (entity, _transform, position, piece_qual) in piece_query.into_iter() {
+                        if position.x == mouse_tile[0] && position.y == mouse_tile[1] {
+                            commands.entity(entity).despawn();
+                        }
+                    }
+                    
                     let direction = Vec3::new((mouse_tile[0] - curr_pos.x) * TILE_SIZE,
                                                     (mouse_tile[1] - curr_pos.y) * TILE_SIZE, 
                                                     0.);
@@ -290,25 +287,49 @@ fn mouse_click_system(
                     curr_trans.translation += direction;
                     commands.entity(curr_entity).remove::<CurrentSelectedPiece>();
                 },
+                // no piece picked up
                 Err(_) => 
-                    for (entity, _transform, position) in piece_query.into_iter() {
+                    // if piece occupies the square, pick piece "up"
+                    for (entity, _transform, position, piece_qual) in piece_query.into_iter() {
                         if position.x == mouse_tile[0] && position.y == mouse_tile[1] {
-                            commands.entity(entity).insert(CurrentSelectedPiece); //BIG BIG BIG
+                            commands.entity(entity).insert(CurrentSelectedPiece);
                         }
                     }
             }
-            // if piece occupies the square, pick piece "up"
+            
         }
     }
 }
 
-pub fn find_mouse_tile(mut input : Vec2, window : &Window) -> Vec2 {
+fn find_mouse_tile(input : Vec2, window : &Window) -> Vec2 {
     let horiz_displacement = window.width() / 2. - TILE_SIZE * 4.;
     let vert_displacement = window.height() / 2. - TILE_SIZE * 4.;
-    
-    input[0] = f32::floor((input[0] - horiz_displacement) / TILE_SIZE);
-    input[1] = f32::floor((input[1] - vert_displacement) / TILE_SIZE);
-
+    Vec2::new(f32::floor((input[0] - horiz_displacement) / TILE_SIZE), 
+              f32::floor((input[1] - vert_displacement) / TILE_SIZE))
     // return is 0 indexed!
-    return input
+}
+
+// also have to somehow check that the king is not in check --- TBD
+fn valid_tiles(x_curr : f32, y_curr : f32, piece : &Piece, 
+                    piece_query: &Query<(Entity, &mut Transform, &mut Position, &Piece), Without<CurrentSelectedPiece>>
+                ) -> Vec<Vec2> {
+    let mut to_return: Vec<Vec2>;
+    // Now fill to_return with all possible moves
+    // piece_query is all the pieces on the board besides the one we are currently parsing
+    // Look at code above to see 
+
+    // Make sure the tile is not occupied with another piece; if it is: same color = not valid tile, different color = valid tile
+    // Try to do basic moves first like King, Rook, bishop, or queen, then Knight, then pawn (with double move if it's on its home rank)
+    // Then do castling and En passant last (text me with questions)
+
+    // I suggest creating a helper function so that you could do (bishop moves + rook moves == Queen Moves) or something like that
+    match piece.piece_type {
+        PieceType::King   =>  todo!(),
+        PieceType::Queen  =>  todo!(),
+        PieceType::Bishop =>  todo!(),
+        PieceType::Rook   =>  todo!(),
+        PieceType::Knight =>  todo!(),
+        PieceType::Pawn   =>  todo!(),
+    };
+    return to_return;
 }
