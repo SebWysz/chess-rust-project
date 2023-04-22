@@ -301,7 +301,7 @@ fn mouse_click_system(
     }
 }
 
-pub fn find_mouse_tile(input : Vec2, window : &Window) -> Vec2 {
+fn find_mouse_tile(input : Vec2, window : &Window) -> Vec2 {
     let horiz_displacement = window.width() / 2. - TILE_SIZE * 4.;
     let vert_displacement = window.height() / 2. - TILE_SIZE * 4.;
     Vec2::new(f32::floor((input[0] - horiz_displacement) / TILE_SIZE), 
@@ -310,7 +310,7 @@ pub fn find_mouse_tile(input : Vec2, window : &Window) -> Vec2 {
 }
 
 // also have to somehow check that the king is not in check --- TBD
-pub fn valid_tiles(x_curr : f32, y_curr : f32, piece : &Piece, 
+fn valid_tiles(x_curr : f32, y_curr : f32, piece : &Piece, 
                     piece_query: &Query<(Entity, &mut Transform, &mut Position, &Piece), Without<CurrentSelectedPiece>>
                 ) -> Vec<Vec2> {
     let mut to_return: Vec<Vec2>;
