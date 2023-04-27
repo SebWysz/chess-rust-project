@@ -410,6 +410,8 @@ fn valid_tiles(x_curr : f32, y_curr : f32, piece : &Piece,
                     to_return.push(Vec2::new(x_curr - 1., y_curr - 2.));
                 }
             }
+            // check if one of the 8 positions has a piece of the same color
+            // and therefore cannot move to that tile, so we remove it from the vector
             for (_ent, pos, parse_piece) in piece_query {
                 let piece_as_vec2 = Vec2::new(pos.x, pos.y);
                 if !to_return.contains(&piece_as_vec2) { continue; }
