@@ -380,235 +380,72 @@ fn valid_tiles(x_curr : f32, y_curr : f32, piece : &Piece,
             //need to add the 8 possible positions
             if x_curr + 2. < 8. {
                 if y_curr + 1. < 8. {
-                    let mut piece_at_tile = false;
-                    for (_ent, pos, parse_piece) in piece_query {
-                        if pos.x != x_curr + 2. || pos.y != y_curr + 1. { continue; }
-                        match piece.color {
-                            PieceColor::Black => {
-                                match parse_piece.color {
-                                    PieceColor::Black => piece_at_tile = true,
-                                    PieceColor::White => {
-                                        to_return.push(Vec2::new(x_curr + 2., y_curr + 1.));
-                                        piece_at_tile = true;
-                                    },
-                                }},
-                            PieceColor::White => {
-                                match parse_piece.color {
-                                    PieceColor::Black => {
-                                        to_return.push(Vec2::new(x_curr + 2., y_curr + 1.));
-                                        piece_at_tile = true;
-                                    },
-                                    PieceColor::White => piece_at_tile = true,
-                                }
-                            }
-                        };
-                    }
-                    if !piece_at_tile {
-                        to_return.push(Vec2::new(x_curr + 2., y_curr + 1.));
-                    }
+                    to_return.push(Vec2::new(x_curr + 2., y_curr + 1.));
                 }
                 if y_curr - 1. >= 0. {
-                    let mut piece_at_tile = false;
-                    for (_ent, pos, parse_piece) in piece_query {
-                        if pos.x != x_curr + 2. || pos.y != y_curr - 1. { continue; }
-                        match piece.color {
-                            PieceColor::Black => {
-                                match parse_piece.color {
-                                    PieceColor::Black => piece_at_tile = true,
-                                    PieceColor::White => {
-                                        to_return.push(Vec2::new(x_curr + 2., y_curr - 1.));
-                                        piece_at_tile = true;
-                                    },
-                                }},
-                            PieceColor::White => {
-                                match parse_piece.color {
-                                    PieceColor::Black => {
-                                        to_return.push(Vec2::new(x_curr + 2., y_curr - 1.));
-                                        piece_at_tile = true;
-                                    },
-                                    PieceColor::White => piece_at_tile = true,
-                                }
-                            }
-                        };
-                    }
-                    if !piece_at_tile {
-                        to_return.push(Vec2::new(x_curr + 2., y_curr - 1.));
-                    }
+                    to_return.push(Vec2::new(x_curr + 2., y_curr - 1.));
                 }
             }
             if x_curr + 1. < 8.{
                 if y_curr + 2. < 8. {
-                    let mut piece_at_tile = false;
-                    for (_ent, pos, parse_piece) in piece_query {
-                        if pos.x != x_curr + 1. || pos.y != y_curr + 2. { continue; }
-                        match piece.color {
-                            PieceColor::Black => {
-                                match parse_piece.color {
-                                    PieceColor::Black => piece_at_tile = true,
-                                    PieceColor::White => {
-                                        to_return.push(Vec2::new(x_curr + 1., y_curr + 2.));
-                                        piece_at_tile = true;
-                                    },
-                                }},
-                            PieceColor::White => {
-                                match parse_piece.color {
-                                    PieceColor::Black => {
-                                        to_return.push(Vec2::new(x_curr + 1., y_curr + 2.));
-                                        piece_at_tile = true;
-                                    },
-                                    PieceColor::White => piece_at_tile = true,
-                                }
-                            }
-                        };
-                    }
-                    if !piece_at_tile {
-                        to_return.push(Vec2::new(x_curr + 1., y_curr + 2.));
-                    }
+                    to_return.push(Vec2::new(x_curr + 1., y_curr + 2.));
                 }
                 if y_curr - 2. >= 0. {
-                    let mut piece_at_tile = false;
-                    for (_ent, pos, parse_piece) in piece_query {
-                        if pos.x != x_curr + 1. || pos.y != y_curr - 2. { continue; }
-                        match piece.color {
-                            PieceColor::Black => {
-                                match parse_piece.color {
-                                    PieceColor::Black => piece_at_tile = true,
-                                    PieceColor::White => {
-                                        to_return.push(Vec2::new(x_curr + 1., y_curr - 2.));
-                                        piece_at_tile = true;
-                                    },
-                                }},
-                            PieceColor::White => {
-                                match parse_piece.color {
-                                    PieceColor::Black => {
-                                        to_return.push(Vec2::new(x_curr + 1., y_curr - 2.));
-                                        piece_at_tile = true;
-                                    },
-                                    PieceColor::White => piece_at_tile = true,
-                                }
-                            }
-                        };
-                    }
-                    if !piece_at_tile {
-                        to_return.push(Vec2::new(x_curr + 1., y_curr - 2.));
-                    }
+                    to_return.push(Vec2::new(x_curr + 1., y_curr - 2.));
                 }
             }
             if x_curr - 2. >= 0. {
                 if y_curr + 1. < 8. {
-                    let mut piece_at_tile = false;
-                    for (_ent, pos, parse_piece) in piece_query {
-                        if pos.x != x_curr - 2. || pos.y != y_curr + 1. { continue; }
-                        match piece.color {
-                            PieceColor::Black => {
-                                match parse_piece.color {
-                                    PieceColor::Black => piece_at_tile = true,
-                                    PieceColor::White => {
-                                        to_return.push(Vec2::new(x_curr - 2., y_curr + 1.));
-                                        piece_at_tile = true;
-                                    },
-                                }},
-                            PieceColor::White => {
-                                match parse_piece.color {
-                                    PieceColor::Black => {
-                                        to_return.push(Vec2::new(x_curr - 2., y_curr + 1.));
-                                        piece_at_tile = true;
-                                    },
-                                    PieceColor::White => piece_at_tile = true,
-                                }
-                            }
-                        };
-                    }
-                    if !piece_at_tile {
-                        to_return.push(Vec2::new(x_curr - 2., y_curr + 1.));
-                    }
+                    to_return.push(Vec2::new(x_curr - 2., y_curr + 1.));
                 }
                 if y_curr - 1. >= 0. {
-                    let mut piece_at_tile = false;
-                    for (_ent, pos, parse_piece) in piece_query {
-                        if pos.x != x_curr - 2. || pos.y != y_curr - 1. { continue; }
-                        match piece.color {
-                            PieceColor::Black => {
-                                match parse_piece.color {
-                                    PieceColor::Black => piece_at_tile = true,
-                                    PieceColor::White => {
-                                        to_return.push(Vec2::new(x_curr - 2., y_curr - 1.));
-                                        piece_at_tile = true;
-                                    },
-                                }},
-                            PieceColor::White => {
-                                match parse_piece.color {
-                                    PieceColor::Black => {
-                                        to_return.push(Vec2::new(x_curr - 2., y_curr - 1.));
-                                        piece_at_tile = true;
-                                    },
-                                    PieceColor::White => piece_at_tile = true,
-                                }
-                            }
-                        };
-                    }
-                    if !piece_at_tile {
-                        to_return.push(Vec2::new(x_curr - 2., y_curr - 1.));
-                    }
+                    to_return.push(Vec2::new(x_curr - 2., y_curr - 1.));
                 }
             }
             if x_curr - 1. >= 0.{
                 if y_curr + 2. < 8. {
-                    let mut piece_at_tile = false;
-                    for (_ent, pos, parse_piece) in piece_query {
-                        if pos.x != x_curr - 1. || pos.y != y_curr + 2. { continue; }
-                        match piece.color {
-                            PieceColor::Black => {
-                                match parse_piece.color {
-                                    PieceColor::Black => piece_at_tile = true,
-                                    PieceColor::White => {
-                                        to_return.push(Vec2::new(x_curr - 1., y_curr + 2.));
-                                        piece_at_tile = true;
-                                    },
-                                }},
-                            PieceColor::White => {
-                                match parse_piece.color {
-                                    PieceColor::Black => {
-                                        to_return.push(Vec2::new(x_curr - 1., y_curr + 2.));
-                                        piece_at_tile = true;
-                                    },
-                                    PieceColor::White => piece_at_tile = true,
-                                }
-                            }
-                        };
-                    }
-                    if !piece_at_tile {
-                        to_return.push(Vec2::new(x_curr - 1., y_curr + 2.));
-                    }
+                    to_return.push(Vec2::new(x_curr - 1., y_curr + 2.));
                 }
                 if y_curr - 2. >= 0. {
-                    let mut piece_at_tile = false;
-                    for (_ent, pos, parse_piece) in piece_query {
-                        if pos.x != x_curr - 1. || pos.y != y_curr - 2. { continue; }
-                        match piece.color {
-                            PieceColor::Black => {
-                                match parse_piece.color {
-                                    PieceColor::Black => piece_at_tile = true,
-                                    PieceColor::White => {
-                                        to_return.push(Vec2::new(x_curr - 1., y_curr - 2.));
-                                        piece_at_tile = true;
-                                    },
-                                }},
-                            PieceColor::White => {
-                                match parse_piece.color {
-                                    PieceColor::Black => {
-                                        to_return.push(Vec2::new(x_curr - 1., y_curr - 2.));
-                                        piece_at_tile = true;
-                                    },
-                                    PieceColor::White => piece_at_tile = true,
-                                }
-                            }
-                        };
-                    }
-                    if !piece_at_tile {
-                        to_return.push(Vec2::new(x_curr - 1., y_curr - 2.));
-                    }
+                    to_return.push(Vec2::new(x_curr - 1., y_curr - 2.));
                 }
+            }
+            // check if one of the 8 positions has a piece of the same color
+            // and therefore cannot move to that tile, so we remove it from the vector
+            for (_ent, pos, parse_piece) in piece_query {
+                let piece_as_vec2 = Vec2::new(pos.x, pos.y);
+                if !to_return.contains(&piece_as_vec2) { continue; }
+                match piece.color {
+                    PieceColor::Black => {
+                        match parse_piece.color {
+                            PieceColor::Black => {
+                                let mut count = 0;
+                                for vec in &to_return {
+                                    if vec.x == piece_as_vec2.x && vec.y == piece_as_vec2.y {
+                                        break;
+                                    }
+                                    count += 1;
+                                }
+                                to_return.remove(count);
+                            },
+                            PieceColor::White => (),
+                        }},
+                    PieceColor::White => {
+                        match parse_piece.color {
+                            PieceColor::Black => (),
+                            PieceColor::White => {
+                                let mut count = 0;
+                                for vec in &to_return {
+                                    if vec.x == piece_as_vec2.x && vec.y == piece_as_vec2.y {
+                                        break;
+                                    }
+                                    count += 1;
+                                }
+                                to_return.remove(count);
+                            },
+                        }
+                    }
+                };
             }
         },
         PieceType::Pawn   =>  todo!(),
