@@ -255,75 +255,97 @@ pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<Pr
 fn mouse_click_system(
     mouse_button_input: Res<Input<MouseButton>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
-    piece_query: Query<(Entity, &mut Transform, &mut Position, &Piece), Without<CurrentSelectedPiece>>,
+    piece_query: Query<(Entity, &mut Position, &Piece), Without<CurrentSelectedPiece>>,
     mut curr_piece_query: Query<(Entity, &mut Transform, &mut Position, &Piece, &CurrentSelectedPiece)>,
     mut commands: Commands,
     red_tiles: Query<Entity, With<Redtile>>,
 ) {
+    if !mouse_button_input.just_pressed(MouseButton::Left) {
+        return;
+    }
+    
     let window = window_query.get_single().unwrap();
     let horiz_displacement = window.width() / 2. - TILE_SIZE * 3.5;
     let vert_displacement = window.height() / 2. - TILE_SIZE * 3.5;
     
-    if mouse_button_input.just_pressed(MouseButton::Left) {
-        let mouse_tile = find_mouse_tile(window.cursor_position().unwrap(), window);
-        
-        // Deal with input not on the board by doing nothing
-        if mouse_tile[0] < BOARD_SIZE as f32 && mouse_tile[0] >= 0. && mouse_tile[1] < BOARD_SIZE as f32 && mouse_tile[1] >= 0. {
-            // if selected piece is picked up, set it down at the tile
-            // if piece is already picked up/invalid move square, do nothing (todo! or error noise? blinking red or something) 
-            match curr_piece_query.get_single_mut() {
-                // has piece picked up
-                Ok((curr_entity, mut curr_trans, mut curr_pos, piece_qual, _curr_sel_piece)) => {
-                    // if !(valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &piece_query).contains(&mouse_tile)) {
-                    //     // insert error noise or blinking? to signal wrong move
-                    //     return;
-                    // }
-                    // Then if it is a valid tile, move the piece there
-                    for (entity, _transform, position, piece_qual) in piece_query.into_iter() {
-                        if position.x == mouse_tile[0] && position.y == mouse_tile[1] {
-                            commands.entity(entity).despawn();
-                        }
-                    }
-                    
-                    let direction = Vec3::new((mouse_tile[0] - curr_pos.x) * TILE_SIZE,
-                                                    (mouse_tile[1] - curr_pos.y) * TILE_SIZE, 
-                                                    0.);
-                    curr_pos.x = mouse_tile[0];
-                    curr_pos.y = mouse_tile[1];
-                    curr_trans.translation += direction;
-                    commands.entity(curr_entity).remove::<CurrentSelectedPiece>();
-                    if !red_tiles.is_empty() {
-                        for tile in red_tiles.into_iter() {
-                            commands.entity(tile).despawn();
-                        }
-                    }
-                },
-                // no piece picked up
-                Err(_) => 
-                    // if piece occupies the square, pick piece "up"
-                    for (entity, _transform, position, piece_qual) in piece_query.into_iter() {
-                        if position.x == mouse_tile[0] && position.y == mouse_tile[1] {
-                            commands.entity(entity).insert(CurrentSelectedPiece);
-                            commands.spawn((
-                                SpriteBundle{
-                                    sprite: Sprite{
-                                        color: Color::rgb_u8(244, 113, 116),
-                                        rect: Some(Rect::new(0.,0.,TILE_SIZE,TILE_SIZE)),
-                                        ..default()
-                                    },
-                                    transform: Transform::from_xyz(
-                                        mouse_tile[0] * TILE_SIZE + horiz_displacement,
-                                        mouse_tile[1] * TILE_SIZE + vert_displacement,
-                                        0.,
-                                    ),
-                                    ..default()
-                                },
-                                Redtile,
-                            ));
-                        }
-                    }
+    let mouse_tile = find_mouse_tile(window.cursor_position().unwrap(), window);
+    
+    // Deal with input not on the board by doing nothing
+    if mouse_tile[0] >= BOARD_SIZE as f32 || mouse_tile[0] < 0. || mouse_tile[1] >= BOARD_SIZE as f32 && mouse_tile[1] < 0. {
+        return;
+    }
+    // if selected piece is picked up, set it down at the tile
+    // if piece is already picked up/invalid move square, do nothing (todo! or error noise? blinking red or something) 
+    match curr_piece_query.get_single_mut() {
+        // has piece picked up
+        Ok((curr_entity, mut curr_trans, mut curr_pos, piece_qual, _curr_sel_piece)) => {
+            if !(valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &piece_query).contains(&mouse_tile)) {
+                // insert error noise or blinking? to signal wrong move
+                return;
             }
-        }
+            // Then if it is a valid tile, move the piece there
+            for (entity, position, piece_qual) in piece_query.into_iter() {
+                if position.x == mouse_tile[0] && position.y == mouse_tile[1] {
+                    commands.entity(entity).despawn();
+                }
+            }
+            
+            let direction = Vec3::new((mouse_tile[0] - curr_pos.x) * TILE_SIZE,
+                                            (mouse_tile[1] - curr_pos.y) * TILE_SIZE, 
+                                            0.);
+            curr_pos.x = mouse_tile[0];
+            curr_pos.y = mouse_tile[1];
+            curr_trans.translation += direction;
+            commands.entity(curr_entity).remove::<CurrentSelectedPiece>();
+            if !red_tiles.is_empty() {
+                for tile in red_tiles.into_iter() {
+                    commands.entity(tile).despawn();
+                }
+            }
+        },
+        // no piece picked up
+        Err(_) => 
+            // if piece occupies the square, pick piece "up"
+            for (entity, position, piece_qual) in piece_query.into_iter() {
+                if position.x != mouse_tile[0] || position.y != mouse_tile[1] { 
+                    continue; 
+                }
+                commands.entity(entity).insert(CurrentSelectedPiece);
+                commands.spawn((
+                    SpriteBundle{
+                        sprite: Sprite{
+                            color: Color::rgb_u8(244, 113, 116),
+                            rect: Some(Rect::new(0.,0.,TILE_SIZE,TILE_SIZE)),
+                            ..default()
+                        },
+                        transform: Transform::from_xyz(
+                            mouse_tile[0] * TILE_SIZE + horiz_displacement,
+                            mouse_tile[1] * TILE_SIZE + vert_displacement,
+                            0.,
+                        ),
+                        ..default()
+                    },
+                    Redtile,
+                ));
+                for pos in valid_tiles(position.x, position.y, piece_qual, &piece_query) {
+                    commands.spawn((
+                        SpriteBundle{
+                            sprite: Sprite{
+                                color: Color::rgb_u8(244, 113, 116),
+                                rect: Some(Rect::new(0.,0.,TILE_SIZE,TILE_SIZE)),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(
+                                pos.x * TILE_SIZE + horiz_displacement,
+                                pos.y * TILE_SIZE + vert_displacement,
+                                0.,
+                            ),
+                            ..default()
+                        },
+                        Redtile,
+                    ));
+                }
+            }
     }
 }
 
@@ -336,26 +358,260 @@ pub fn find_mouse_tile(input : Vec2, window : &Window) -> Vec2 {
 }
 
 // also have to somehow check that the king is not in check --- TBD
-// fn valid_tiles(x_curr : f32, y_curr : f32, piece : &Piece, 
-//                     piece_query: &Query<(Entity, &mut Transform, &mut Position, &Piece), Without<CurrentSelectedPiece>>
-//                 ) -> Vec<Vec2> {
-//     let mut to_return: Vec<Vec2>;
-//     // Now fill to_return with all possible moves
-//     // piece_query is all the pieces on the board besides the one we are currently parsing
-//     // Look at code above to see 
+fn valid_tiles(x_curr : f32, y_curr : f32, piece : &Piece, 
+                    piece_query: &Query<(Entity, &mut Position, &Piece), Without<CurrentSelectedPiece>>
+                ) -> Vec<Vec2> {
+    let mut to_return: Vec<Vec2> = vec![];
+    // Now fill to_return with all possible moves
+    // piece_query is all the pieces on the board besides the one we are currently parsing
+    // Look at code above to see 
     
-//     // Make sure the tile is not occupied with another piece; if it is: same color = not valid tile, different color = valid tile
-//     // Try to do basic moves first like King, Rook, bishop, or queen, then Knight, then pawn (with double move if it's on its home rank)
-//     // Then do castling and En passant last (text me with questions)
+    // Make sure the tile is not occupied with another piece; if it is: same color = not valid tile, different color = valid tile
+    // Try to do basic moves first like King, Rook, bishop, or queen, then Knight, then pawn (with double move if it's on its home rank)
+    // Then do castling and En passant last (text me with questions)
 
-//     // I suggest creating a helper function so that you could do (bishop moves + rook moves == Queen Moves) or something like that
-//     match piece.piece_type {
-//         PieceType::King   =>  todo!(),
-//         PieceType::Queen  =>  todo!(),
-//         PieceType::Bishop =>  todo!(),
-//         PieceType::Rook   =>  todo!(),
-//         PieceType::Knight =>  todo!(),
-//         PieceType::Pawn   =>  todo!(),
-//     };
-//     return to_return;
-// }
+    // I suggest creating a helper function so that you could do (bishop moves + rook moves == Queen Moves) or something like that
+    match piece.piece_type {
+        PieceType::King   =>  todo!(),
+        PieceType::Queen  =>  todo!(),
+        PieceType::Bishop =>  todo!(),
+        PieceType::Rook   =>  todo!(),
+        PieceType::Knight =>  {
+            //need to add the 8 possible positions
+            if x_curr + 2. < 8. {
+                if y_curr + 1. < 8. {
+                    let mut piece_at_tile = false;
+                    for (_ent, pos, parse_piece) in piece_query {
+                        if pos.x != x_curr + 2. || pos.y != y_curr + 1. { continue; }
+                        match piece.color {
+                            PieceColor::Black => {
+                                match parse_piece.color {
+                                    PieceColor::Black => piece_at_tile = true,
+                                    PieceColor::White => {
+                                        to_return.push(Vec2::new(x_curr + 2., y_curr + 1.));
+                                        piece_at_tile = true;
+                                    },
+                                }},
+                            PieceColor::White => {
+                                match parse_piece.color {
+                                    PieceColor::Black => {
+                                        to_return.push(Vec2::new(x_curr + 2., y_curr + 1.));
+                                        piece_at_tile = true;
+                                    },
+                                    PieceColor::White => piece_at_tile = true,
+                                }
+                            }
+                        };
+                    }
+                    if !piece_at_tile {
+                        to_return.push(Vec2::new(x_curr + 2., y_curr + 1.));
+                    }
+                }
+                if y_curr - 1. >= 0. {
+                    let mut piece_at_tile = false;
+                    for (_ent, pos, parse_piece) in piece_query {
+                        if pos.x != x_curr + 2. || pos.y != y_curr - 1. { continue; }
+                        match piece.color {
+                            PieceColor::Black => {
+                                match parse_piece.color {
+                                    PieceColor::Black => piece_at_tile = true,
+                                    PieceColor::White => {
+                                        to_return.push(Vec2::new(x_curr + 2., y_curr - 1.));
+                                        piece_at_tile = true;
+                                    },
+                                }},
+                            PieceColor::White => {
+                                match parse_piece.color {
+                                    PieceColor::Black => {
+                                        to_return.push(Vec2::new(x_curr + 2., y_curr - 1.));
+                                        piece_at_tile = true;
+                                    },
+                                    PieceColor::White => piece_at_tile = true,
+                                }
+                            }
+                        };
+                    }
+                    if !piece_at_tile {
+                        to_return.push(Vec2::new(x_curr + 2., y_curr - 1.));
+                    }
+                }
+            }
+            if x_curr + 1. < 8.{
+                if y_curr + 2. < 8. {
+                    let mut piece_at_tile = false;
+                    for (_ent, pos, parse_piece) in piece_query {
+                        if pos.x != x_curr + 1. || pos.y != y_curr + 2. { continue; }
+                        match piece.color {
+                            PieceColor::Black => {
+                                match parse_piece.color {
+                                    PieceColor::Black => piece_at_tile = true,
+                                    PieceColor::White => {
+                                        to_return.push(Vec2::new(x_curr + 1., y_curr + 2.));
+                                        piece_at_tile = true;
+                                    },
+                                }},
+                            PieceColor::White => {
+                                match parse_piece.color {
+                                    PieceColor::Black => {
+                                        to_return.push(Vec2::new(x_curr + 1., y_curr + 2.));
+                                        piece_at_tile = true;
+                                    },
+                                    PieceColor::White => piece_at_tile = true,
+                                }
+                            }
+                        };
+                    }
+                    if !piece_at_tile {
+                        to_return.push(Vec2::new(x_curr + 1., y_curr + 2.));
+                    }
+                }
+                if y_curr - 2. >= 0. {
+                    let mut piece_at_tile = false;
+                    for (_ent, pos, parse_piece) in piece_query {
+                        if pos.x != x_curr + 1. || pos.y != y_curr - 2. { continue; }
+                        match piece.color {
+                            PieceColor::Black => {
+                                match parse_piece.color {
+                                    PieceColor::Black => piece_at_tile = true,
+                                    PieceColor::White => {
+                                        to_return.push(Vec2::new(x_curr + 1., y_curr - 2.));
+                                        piece_at_tile = true;
+                                    },
+                                }},
+                            PieceColor::White => {
+                                match parse_piece.color {
+                                    PieceColor::Black => {
+                                        to_return.push(Vec2::new(x_curr + 1., y_curr - 2.));
+                                        piece_at_tile = true;
+                                    },
+                                    PieceColor::White => piece_at_tile = true,
+                                }
+                            }
+                        };
+                    }
+                    if !piece_at_tile {
+                        to_return.push(Vec2::new(x_curr + 1., y_curr - 2.));
+                    }
+                }
+            }
+            if x_curr - 2. >= 0. {
+                if y_curr + 1. < 8. {
+                    let mut piece_at_tile = false;
+                    for (_ent, pos, parse_piece) in piece_query {
+                        if pos.x != x_curr - 2. || pos.y != y_curr + 1. { continue; }
+                        match piece.color {
+                            PieceColor::Black => {
+                                match parse_piece.color {
+                                    PieceColor::Black => piece_at_tile = true,
+                                    PieceColor::White => {
+                                        to_return.push(Vec2::new(x_curr - 2., y_curr + 1.));
+                                        piece_at_tile = true;
+                                    },
+                                }},
+                            PieceColor::White => {
+                                match parse_piece.color {
+                                    PieceColor::Black => {
+                                        to_return.push(Vec2::new(x_curr - 2., y_curr + 1.));
+                                        piece_at_tile = true;
+                                    },
+                                    PieceColor::White => piece_at_tile = true,
+                                }
+                            }
+                        };
+                    }
+                    if !piece_at_tile {
+                        to_return.push(Vec2::new(x_curr - 2., y_curr + 1.));
+                    }
+                }
+                if y_curr - 1. >= 0. {
+                    let mut piece_at_tile = false;
+                    for (_ent, pos, parse_piece) in piece_query {
+                        if pos.x != x_curr - 2. || pos.y != y_curr - 1. { continue; }
+                        match piece.color {
+                            PieceColor::Black => {
+                                match parse_piece.color {
+                                    PieceColor::Black => piece_at_tile = true,
+                                    PieceColor::White => {
+                                        to_return.push(Vec2::new(x_curr - 2., y_curr - 1.));
+                                        piece_at_tile = true;
+                                    },
+                                }},
+                            PieceColor::White => {
+                                match parse_piece.color {
+                                    PieceColor::Black => {
+                                        to_return.push(Vec2::new(x_curr - 2., y_curr - 1.));
+                                        piece_at_tile = true;
+                                    },
+                                    PieceColor::White => piece_at_tile = true,
+                                }
+                            }
+                        };
+                    }
+                    if !piece_at_tile {
+                        to_return.push(Vec2::new(x_curr - 2., y_curr - 1.));
+                    }
+                }
+            }
+            if x_curr - 1. >= 0.{
+                if y_curr + 2. < 8. {
+                    let mut piece_at_tile = false;
+                    for (_ent, pos, parse_piece) in piece_query {
+                        if pos.x != x_curr - 1. || pos.y != y_curr + 2. { continue; }
+                        match piece.color {
+                            PieceColor::Black => {
+                                match parse_piece.color {
+                                    PieceColor::Black => piece_at_tile = true,
+                                    PieceColor::White => {
+                                        to_return.push(Vec2::new(x_curr - 1., y_curr + 2.));
+                                        piece_at_tile = true;
+                                    },
+                                }},
+                            PieceColor::White => {
+                                match parse_piece.color {
+                                    PieceColor::Black => {
+                                        to_return.push(Vec2::new(x_curr - 1., y_curr + 2.));
+                                        piece_at_tile = true;
+                                    },
+                                    PieceColor::White => piece_at_tile = true,
+                                }
+                            }
+                        };
+                    }
+                    if !piece_at_tile {
+                        to_return.push(Vec2::new(x_curr - 1., y_curr + 2.));
+                    }
+                }
+                if y_curr - 2. >= 0. {
+                    let mut piece_at_tile = false;
+                    for (_ent, pos, parse_piece) in piece_query {
+                        if pos.x != x_curr - 1. || pos.y != y_curr - 2. { continue; }
+                        match piece.color {
+                            PieceColor::Black => {
+                                match parse_piece.color {
+                                    PieceColor::Black => piece_at_tile = true,
+                                    PieceColor::White => {
+                                        to_return.push(Vec2::new(x_curr - 1., y_curr - 2.));
+                                        piece_at_tile = true;
+                                    },
+                                }},
+                            PieceColor::White => {
+                                match parse_piece.color {
+                                    PieceColor::Black => {
+                                        to_return.push(Vec2::new(x_curr - 1., y_curr - 2.));
+                                        piece_at_tile = true;
+                                    },
+                                    PieceColor::White => piece_at_tile = true,
+                                }
+                            }
+                        };
+                    }
+                    if !piece_at_tile {
+                        to_return.push(Vec2::new(x_curr - 1., y_curr - 2.));
+                    }
+                }
+            }
+        },
+        PieceType::Pawn   =>  todo!(),
+    };
+    return to_return;
+}
