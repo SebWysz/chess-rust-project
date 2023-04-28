@@ -5,7 +5,8 @@ pub struct Board {
     pub board: Vec<Vec<Tile>>,
 }
 
-pub enum Colour {
+#[derive(PartialEq)]
+pub enum PieceColour {
     White,
     Black,
 }
@@ -20,6 +21,17 @@ pub enum PieceType {
 }
 pub struct Tile {
     pub has_piece: bool,
-    pub colour: Colour,
+    pub colour: PieceColour,
     pub piece_type: PieceType,
 }
+
+struct Piece{
+    piece_type: PieceType,
+    colour: PieceColour,
+}
+
+struct Position{
+    x: f32,
+    y: f32,
+}
+

@@ -20,11 +20,11 @@ struct CurrentSelectedPiece;
 
 #[derive(Component)]
 struct Piece {
-    color : PieceColor,
+    colour : PieceColour,
     piece_type : PieceType,
 }
 
-enum PieceColor {
+enum PieceColour {
     White,
     Black,
 }
@@ -55,7 +55,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
     // Create the checkered board
     for row in 0..BOARD_SIZE {
         for col in 0..BOARD_SIZE {
-            let tile_color = if (row + col) % 2 == 0 {
+            let tile_colour = if (row + col) % 2 == 0 {
                 Color::rgb_u8(150, 77, 34)
             } else {
                 Color::rgb_u8(218, 217, 181)
@@ -63,7 +63,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
 
             commands.spawn(SpriteBundle{
                 sprite: Sprite{
-                    color: tile_color,
+                    color: tile_colour,
                     rect: Some(Rect::new(0.,0.,TILE_SIZE,TILE_SIZE)),
                     ..default()
                 },
@@ -89,7 +89,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             texture: asset_server.load("sprites/Bpawn.png"),
             ..default()
         },
-        Piece{color : PieceColor::Black, piece_type : PieceType::Pawn},
+        Piece{colour : PieceColour::Black, piece_type : PieceType::Pawn},
         Position {x: col as f32, y: 6.}
     ));
         //white pawns
@@ -102,7 +102,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             texture: asset_server.load("sprites/Wpawn.png"),
             ..default()
         },
-        Piece{color : PieceColor::White, piece_type : PieceType::Pawn},
+        Piece{colour : PieceColour::White, piece_type : PieceType::Pawn},
         Position {x: col as f32, y: 1.},
     ));
     }
@@ -117,7 +117,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
         texture: asset_server.load("sprites/Wking.png"),
         ..default()
         },
-        Piece{color : PieceColor::White, piece_type : PieceType::King},
+        Piece{colour : PieceColour::White, piece_type : PieceType::King},
         Position {x: 4., y: 0.},
     ));
     commands.spawn((SpriteBundle {
@@ -129,7 +129,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
         texture: asset_server.load("sprites/Bking.png"),
         ..default()
         },
-        Piece{color : PieceColor::Black, piece_type : PieceType::King},
+        Piece{colour : PieceColour::Black, piece_type : PieceType::King},
         Position {x: 4., y: 7.},
     ));
 
@@ -143,7 +143,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
         texture: asset_server.load("sprites/Wqueen.png"),
         ..default()
         },
-        Piece{color : PieceColor::White, piece_type : PieceType::Queen},
+        Piece{colour : PieceColour::White, piece_type : PieceType::Queen},
         Position {x: 3., y: 0.},
     ));
     commands.spawn((SpriteBundle {
@@ -155,7 +155,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
         texture: asset_server.load("sprites/Bqueen.png"),
         ..default()
         },
-        Piece{color : PieceColor::Black, piece_type : PieceType::Queen},
+        Piece{colour : PieceColour::Black, piece_type : PieceType::Queen},
         Position {x: 3., y: 7.},
     ));
 
@@ -170,7 +170,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             texture: asset_server.load("sprites/Bbishop.png"),
             ..default()
             },
-            Piece{color : PieceColor::Black, piece_type : PieceType::Bishop},
+            Piece{colour : PieceColour::Black, piece_type : PieceType::Bishop},
             Position {x: (col as f32 * 3. + 2.), y: 7.},
         ));
         commands.spawn((SpriteBundle {
@@ -182,7 +182,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             texture: asset_server.load("sprites/Wbishop.png"),
             ..default()
             },
-            Piece{color : PieceColor::White, piece_type : PieceType::Bishop},
+            Piece{colour : PieceColour::White, piece_type : PieceType::Bishop},
             Position {x: (col as f32 * 3. + 2.), y: 0.},
         ));
     }
@@ -198,7 +198,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             texture: asset_server.load("sprites/Bhorse.png"),
             ..default()
             },
-            Piece{color : PieceColor::Black, piece_type : PieceType::Knight},
+            Piece{colour : PieceColour::Black, piece_type : PieceType::Knight},
             Position {x: (col as f32 * 5. + 1.), y: 7.},
         ));
         commands.spawn((SpriteBundle {
@@ -210,7 +210,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             texture: asset_server.load("sprites/Whorse.png"),
             ..default()
             },
-            Piece{color : PieceColor::White, piece_type : PieceType::Knight},
+            Piece{colour : PieceColour::White, piece_type : PieceType::Knight},
             Position {x: (col as f32 * 5. + 1.), y: 0.},
         ));
     }
@@ -226,7 +226,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             texture: asset_server.load("sprites/Brook.png"),
             ..default()
             },
-            Piece{color : PieceColor::Black, piece_type : PieceType::Rook},
+            Piece{colour : PieceColour::Black, piece_type : PieceType::Rook},
             Position {x: (col as f32 * 7.), y: 7.},
         ));
         commands.spawn((SpriteBundle {
@@ -238,7 +238,7 @@ fn setup_board(mut commands: Commands, window_query: Query<&Window, With<Primary
             texture: asset_server.load("sprites/Wrook.png"),
             ..default()
             },
-            Piece{color : PieceColor::White, piece_type : PieceType::Rook},
+            Piece{colour : PieceColour::White, piece_type : PieceType::Rook},
             Position {x: (col as f32 * 7.), y: 0.},
         ));
     }
@@ -358,97 +358,200 @@ pub fn find_mouse_tile(input : Vec2, window : &Window) -> Vec2 {
 }
 
 // also have to somehow check that the king is not in check --- TBD
-fn valid_tiles(x_curr : f32, y_curr : f32, piece : &Piece, 
-                    piece_query: &Query<(Entity, &mut Position, &Piece), Without<CurrentSelectedPiece>>
-                ) -> Vec<Vec2> {
-    let mut to_return: Vec<Vec2> = vec![];
-    // Now fill to_return with all possible moves
-    // piece_query is all the pieces on the board besides the one we are currently parsing
-    // Look at code above to see 
-    
-    // Make sure the tile is not occupied with another piece; if it is: same color = not valid tile, different color = valid tile
-    // Try to do basic moves first like King, Rook, bishop, or queen, then Knight, then pawn (with double move if it's on its home rank)
-    // Then do castling and En passant last (text me with questions)
+impl PieceColour {
+    fn is_different(&self, other: &PieceColour) -> bool {
+        match (self, other) {
+            (PieceColour::White, PieceColour::Black) => true,
+            (PieceColour::Black, PieceColour::White) => true,
+            _ => false,
+        }
+    }
+}
+fn valid_moves_for_directions(
+    x_curr: f32,
+    y_curr: f32,
+    directions: &[(f32, f32)],
+    max_distance: usize,
+    piece: &Piece,
+    piece_query: &Query<(Entity, &mut Position, &Piece), Without<CurrentSelectedPiece>>,
+) -> Vec<Vec2> {
+    let mut to_return = vec![];
 
-    // I suggest creating a helper function so that you could do (bishop moves + rook moves == Queen Moves) or something like that
+    for &(dx, dy) in directions {
+        for i in 1..=max_distance {
+            let x_new = x_curr + (i as f32) * dx;
+            let y_new = y_curr + (i as f32) * dy;
+
+            if x_new < 0. || x_new >= 8. || y_new < 0. || y_new >= 8. {
+                break;
+            }
+
+            let mut piece_at_tile = false;
+            for (_ent, pos, parse_piece) in piece_query.iter() {
+                if pos.x != x_new || pos.y != y_new {
+                    continue;
+                }
+
+                if piece.colour.is_different(&parse_piece.colour) {
+                    to_return.push(Vec2::new(x_new, y_new));
+                }
+                piece_at_tile = true;
+                break;
+            }
+
+            if !piece_at_tile {
+                to_return.push(Vec2::new(x_new, y_new));
+            } else {
+                break;
+            }
+        }
+    }
+
+    to_return
+}
+
+fn valid_tiles(
+    x_curr: f32,
+    y_curr: f32,
+    piece: &Piece,
+    piece_query: &Query<(Entity, &mut Position, &Piece), Without<CurrentSelectedPiece>>,
+) -> Vec<Vec2> {
+    let mut to_return: Vec<Vec2> = vec![];
+
     match piece.piece_type {
-        PieceType::King   =>  todo!(),
-        PieceType::Queen  =>  todo!(),
-        PieceType::Bishop =>  todo!(),
-        PieceType::Rook   =>  todo!(),
-        PieceType::Knight =>  {
-            //need to add the 8 possible positions
-            if x_curr + 2. < 8. {
-                if y_curr + 1. < 8. {
-                    to_return.push(Vec2::new(x_curr + 2., y_curr + 1.));
+        PieceType::King => {
+            let directions = &[
+                (1., 0.),
+                (-1., 0.),
+                (0., 1.),
+                (0., -1.),
+                (1., 1.),
+                (1., -1.),
+                (-1., 1.),
+                (-1., -1.),
+            ];
+            to_return = valid_moves_for_directions(x_curr, y_curr, directions, 1, piece, piece_query);
+        }
+        PieceType::Queen => {
+            let directions = &[
+                (1., 0.),
+                (-1., 0.),
+                (0., 1.),
+                (0., -1.),
+                (1., 1.),
+                (1., -1.),
+                (-1., 1.),
+                (-1., -1.),
+            ];
+            to_return = valid_moves_for_directions(x_curr, y_curr, directions, 7, piece, piece_query);
+        }
+        PieceType::Bishop => {
+            let directions = &[(1., 1.), (1., -1.), (-1., 1.), (-1., -1.)];
+            to_return = valid_moves_for_directions(x_curr, y_curr, directions, 7, piece, piece_query);
+        }
+        PieceType::Rook => {
+            let directions = &[(1., 0.), (-1., 0.), (0., 1.), (0., -1.)];
+            to_return = valid_moves_for_directions(x_curr, y_curr, directions, 7, piece, piece_query);
+        }
+        PieceType::Knight => {
+            let knight_moves = &[
+                (2., 1.),
+                (2., -1.),
+                (1., 2.),
+                (1., -2.),
+                (-2., 1.),
+                (-2., -1.),
+                (-1., 2.),
+                (-1., -2.),
+            ];
+
+            for &(dx, dy) in knight_moves {
+                let x_new = x_curr + dx;
+                let y_new = y_curr + dy;
+
+                if x_new < 0. || x_new >= 8. || y_new < 0. || y_new >= 8. {
+                    continue;
                 }
-                if y_curr - 1. >= 0. {
-                    to_return.push(Vec2::new(x_curr + 2., y_curr - 1.));
-                }
-            }
-            if x_curr + 1. < 8.{
-                if y_curr + 2. < 8. {
-                    to_return.push(Vec2::new(x_curr + 1., y_curr + 2.));
-                }
-                if y_curr - 2. >= 0. {
-                    to_return.push(Vec2::new(x_curr + 1., y_curr - 2.));
-                }
-            }
-            if x_curr - 2. >= 0. {
-                if y_curr + 1. < 8. {
-                    to_return.push(Vec2::new(x_curr - 2., y_curr + 1.));
-                }
-                if y_curr - 1. >= 0. {
-                    to_return.push(Vec2::new(x_curr - 2., y_curr - 1.));
-                }
-            }
-            if x_curr - 1. >= 0.{
-                if y_curr + 2. < 8. {
-                    to_return.push(Vec2::new(x_curr - 1., y_curr + 2.));
-                }
-                if y_curr - 2. >= 0. {
-                    to_return.push(Vec2::new(x_curr - 1., y_curr - 2.));
-                }
-            }
-            // check if one of the 8 positions has a piece of the same color
-            // and therefore cannot move to that tile, so we remove it from the vector
-            for (_ent, pos, parse_piece) in piece_query {
-                let piece_as_vec2 = Vec2::new(pos.x, pos.y);
-                if !to_return.contains(&piece_as_vec2) { continue; }
-                match piece.color {
-                    PieceColor::Black => {
-                        match parse_piece.color {
-                            PieceColor::Black => {
-                                let mut count = 0;
-                                for vec in &to_return {
-                                    if vec.x == piece_as_vec2.x && vec.y == piece_as_vec2.y {
-                                        break;
-                                    }
-                                    count += 1;
-                                }
-                                to_return.remove(count);
-                            },
-                            PieceColor::White => (),
-                        }},
-                    PieceColor::White => {
-                        match parse_piece.color {
-                            PieceColor::Black => (),
-                            PieceColor::White => {
-                                let mut count = 0;
-                                for vec in &to_return {
-                                    if vec.x == piece_as_vec2.x && vec.y == piece_as_vec2.y {
-                                        break;
-                                    }
-                                    count += 1;
-                                }
-                                to_return.remove(count);
-                            },
-                        }
+
+                let mut piece_at_tile = false;
+                for (_ent, pos, parse_piece) in piece_query.iter() {
+                    if pos.x != x_new || pos.y != y_new {
+                        continue;
                     }
-                };
+
+                    if piece.colour.is_different(&parse_piece.colour) {
+                        to_return.push(Vec2::new(x_new, y_new));
+                    }
+                    piece_at_tile = true;
+                    break;
+                }
+
+                if !piece_at_tile {
+                    to_return.push(Vec2::new(x_new, y_new));
+                }
             }
-        },
-        PieceType::Pawn   =>  todo!(),
+        }
+        PieceType::Pawn => {
+            let direction;
+            let start_rank;
+            match piece.colour {
+                PieceColour::White => {
+                    direction = 1.;
+                    start_rank = 1.;
+                }
+                PieceColour::Black => {
+                    direction = -1.;
+                    start_rank = 6.;
+                }
+            }
+
+            let y_new = y_curr + direction;
+            if y_new >= 0. && y_new < 8. {
+                let positions = &[(x_curr, y_new), (x_curr + 1., y_new), (x_curr - 1., y_new)];
+
+                for &(x_new, y_new) in positions {
+                    if x_new < 0. || x_new >= 8. {
+                        continue;
+                    }
+
+                    let mut piece_at_tile = false;
+                    for (_ent, pos, parse_piece) in piece_query.iter() {
+                        if pos.x != x_new || pos.y != y_new {
+                            continue;
+                        }
+
+                        if piece.colour.is_different(&parse_piece.colour) {
+                            piece_at_tile = true;
+                        } else {
+                            to_return.push(Vec2::new(x_new, y_new));
+                        }
+                        break;
+                    }
+
+                    if !piece_at_tile && x_new == x_curr {
+                        to_return.push(Vec2::new(x_new, y_new));
+                    }
+                }
+            }
+
+            if y_curr == start_rank {
+                let y_new = y_curr + 2. * direction;
+                if y_new >= 0. && y_new < 8. {
+                    let mut piece_at_tile = false;
+                    for (_ent, pos, _parse_piece) in piece_query.iter() {
+                        if pos.x != x_curr || pos.y != y_new {
+                            continue;
+                        }
+                        piece_at_tile = true;
+                        break;
+                    }
+                    if !piece_at_tile {
+                        to_return.push(Vec2::new(x_curr, y_new));
+                    }
+                }
+            }
+        }
     };
+
     return to_return;
 }
