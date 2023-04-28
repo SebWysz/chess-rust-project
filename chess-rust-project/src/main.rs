@@ -253,6 +253,7 @@ pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<Pr
 }
 
 fn mouse_click_system(
+    keyboard_input: Res<Input<KeyCode>>,
     mouse_button_input: Res<Input<MouseButton>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
     piece_query: Query<(Entity, &mut Position, &Piece), Without<CurrentSelectedPiece>>,
@@ -260,6 +261,12 @@ fn mouse_click_system(
     mut commands: Commands,
     red_tiles: Query<Entity, With<Redtile>>,
 ) {
+    // Check for 'Escape' key to unselect the current piece
+    if keyboard_input.just_pressed(KeyCode::Escape) {
+        unselect_current_piece(curr_piece_query, commands, red_tiles);
+        return;
+    }
+
     if !mouse_button_input.just_pressed(MouseButton::Left) {
         return;
     }
@@ -554,4 +561,21 @@ fn valid_tiles(
     };
 
     return to_return;
+}
+fn unselect_current_piece(
+    mut curr_piece_query: Query<(Entity, &mut Transform, &mut Position, &Piece, &CurrentSelectedPiece)>,
+    mut commands: Commands,
+    red_tiles: Query<Entity, With<Redtile>>,
+) {
+    match curr_piece_query.get_single_mut() {
+        Ok((curr_entity, _curr_trans, _curr_pos, _piece_qual, _curr_sel_piece)) => {
+            commands.entity(curr_entity).remove::<CurrentSelectedPiece>();
+            if !red_tiles.is_empty() {
+                for tile in red_tiles.into_iter() {
+                    commands.entity(tile).despawn();
+                }
+            }
+        },
+        Err(_) => ()
+    }
 }
