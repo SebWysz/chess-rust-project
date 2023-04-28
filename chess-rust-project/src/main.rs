@@ -286,6 +286,11 @@ fn mouse_click_system(
     match curr_piece_query.get_single_mut() {
         // has piece picked up
         Ok((curr_entity, mut curr_trans, mut curr_pos, piece_qual, _curr_sel_piece)) => {
+            if mouse_tile[0] == curr_pos.x && mouse_tile[1] == curr_pos.y {
+                unselect_current_piece(curr_piece_query, commands, red_tiles);
+                return;
+            }
+            
             if !(valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &piece_query).contains(&mouse_tile)) {
                 // insert error noise or blinking? to signal wrong move
                 return;
