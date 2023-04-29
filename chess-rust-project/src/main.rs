@@ -1,7 +1,7 @@
 //Activate Clippy, helps with proper formatting
 #![deny(clippy::all)]
 
-use bevy::{prelude::*, window::PrimaryWindow, ecs::entity, transform};
+use bevy::{prelude::*, window::PrimaryWindow};
 
 fn main() {
     App::new()
@@ -9,11 +9,15 @@ fn main() {
         .add_startup_system(spawn_camera)
         .add_startup_system(setup_board)
         .add_system(mouse_click_system)
+        .insert_resource(WhiteMove(true))
         .run();
 }
 
 const TILE_SIZE: f32 = 80.0;
 const BOARD_SIZE: usize = 8;
+
+#[derive(Resource)]
+struct WhiteMove(bool);
 
 #[derive(Component)]
 struct CurrentSelectedPiece;
@@ -255,6 +259,7 @@ pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<Pr
 fn mouse_click_system(
     keyboard_input: Res<Input<KeyCode>>,
     mouse_button_input: Res<Input<MouseButton>>,
+    white_move : ResMut<WhiteMove>, 
     window_query: Query<&Window, With<PrimaryWindow>>,
     piece_query: Query<(Entity, &mut Position, &Piece), Without<CurrentSelectedPiece>>,
     mut curr_piece_query: Query<(Entity, &mut Transform, &mut Position, &Piece, &CurrentSelectedPiece)>,
@@ -290,13 +295,18 @@ fn mouse_click_system(
                 unselect_current_piece(curr_piece_query, commands, red_tiles);
                 return;
             }
+
+            if (white_move.0 == true && piece_qual.colour.is_different(&PieceColour::White)) 
+                || (white_move.0 == false && piece_qual.colour.is_different(&PieceColour::Black)) {
+                return;
+            }
             
             if !(valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &piece_query).contains(&mouse_tile)) {
                 // insert error noise or blinking? to signal wrong move
                 return;
             }
             // Then if it is a valid tile, move the piece there
-            for (entity, position, piece_qual) in piece_query.into_iter() {
+            for (entity, position, _piece_qual) in piece_query.into_iter() {
                 if position.x == mouse_tile[0] && position.y == mouse_tile[1] {
                     commands.entity(entity).despawn();
                 }
@@ -313,6 +323,11 @@ fn mouse_click_system(
                 for tile in red_tiles.into_iter() {
                     commands.entity(tile).despawn();
                 }
+            }
+            if white_move.0 {
+                commands.insert_resource(WhiteMove(false));
+            } else {
+                commands.insert_resource(WhiteMove(true));
             }
         },
         // no piece picked up
