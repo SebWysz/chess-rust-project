@@ -10,6 +10,7 @@ fn main() {
         .add_startup_system(setup_board)
         .add_system(mouse_click_system)
         .insert_resource(WhiteMove(true))
+        .insert_resource(InCheck { black: false, white: false })
         .run();
 }
 
@@ -18,6 +19,12 @@ const BOARD_SIZE: usize = 8;
 
 #[derive(Resource)]
 struct WhiteMove(bool);
+
+#[derive(Resource)]
+struct InCheck {
+    black : bool,
+    white : bool,
+}
 
 #[derive(Component)]
 struct CurrentSelectedPiece;
@@ -300,7 +307,7 @@ fn mouse_click_system(
                 || (white_move.0 == false && piece_qual.colour.is_different(&PieceColour::Black)) {
                 return;
             }
-            
+
             if !(valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &piece_query).contains(&mouse_tile)) {
                 // insert error noise or blinking? to signal wrong move
                 return;
@@ -338,39 +345,11 @@ fn mouse_click_system(
                     continue; 
                 }
                 commands.entity(entity).insert(CurrentSelectedPiece);
-                commands.spawn((
-                    SpriteBundle{
-                        sprite: Sprite{
-                            color: Color::rgb_u8(244, 113, 116),
-                            rect: Some(Rect::new(0.,0.,TILE_SIZE,TILE_SIZE)),
-                            ..default()
-                        },
-                        transform: Transform::from_xyz(
-                            mouse_tile[0] * TILE_SIZE + horiz_displacement,
-                            mouse_tile[1] * TILE_SIZE + vert_displacement,
-                            0.,
-                        ),
-                        ..default()
-                    },
-                    Redtile,
-                ));
-                for pos in valid_tiles(position.x, position.y, piece_qual, &piece_query) {
-                    commands.spawn((
-                        SpriteBundle{
-                            sprite: Sprite{
-                                color: Color::rgb_u8(244, 113, 116),
-                                rect: Some(Rect::new(0.,0.,TILE_SIZE,TILE_SIZE)),
-                                ..default()
-                            },
-                            transform: Transform::from_xyz(
-                                pos.x * TILE_SIZE + horiz_displacement,
-                                pos.y * TILE_SIZE + vert_displacement,
-                                0.,
-                            ),
-                            ..default()
-                        },
-                        Redtile,
-                    ));
+                
+                // Show tiles able to move onto
+                spawn_red_tile(&mut commands, mouse_tile[0], mouse_tile[1], horiz_displacement, vert_displacement);
+                for valid_pos in valid_tiles(position.x, position.y, piece_qual, &piece_query) {
+                    spawn_red_tile(&mut commands, valid_pos.x, valid_pos.y, horiz_displacement, vert_displacement);
                 }
             }
     }
@@ -382,6 +361,25 @@ pub fn find_mouse_tile(input : Vec2, window : &Window) -> Vec2 {
     Vec2::new(f32::floor((input[0] - horiz_displacement) / TILE_SIZE), 
               f32::floor((input[1] - vert_displacement) / TILE_SIZE))
     // return is 0 indexed!
+}
+
+fn spawn_red_tile(commands : &mut Commands, pos_x : f32, pos_y :f32, horiz_displacement : f32, vert_displacement : f32) {
+    commands.spawn((
+        SpriteBundle{
+            sprite: Sprite{
+                color: Color::rgb_u8(244, 113, 116),
+                rect: Some(Rect::new(0.,0.,TILE_SIZE,TILE_SIZE)),
+                ..default()
+            },
+            transform: Transform::from_xyz(
+                pos_x * TILE_SIZE + horiz_displacement,
+                pos_y * TILE_SIZE + vert_displacement,
+                0.,
+            ),
+            ..default()
+        },
+        Redtile,
+    ));
 }
 
 // also have to somehow check that the king is not in check --- TBD
@@ -546,7 +544,7 @@ fn valid_tiles(
                         if pos.x != x_new || pos.y != y_new {
                             continue;
                         }
-
+                        // Logic needs fixing, only takes same color pieces, not opposing
                         if piece.colour.is_different(&parse_piece.colour) {
                             piece_at_tile = true;
                         } else {
@@ -582,6 +580,7 @@ fn valid_tiles(
 
     return to_return;
 }
+
 fn unselect_current_piece(
     mut curr_piece_query: Query<(Entity, &mut Transform, &mut Position, &Piece, &CurrentSelectedPiece)>,
     mut commands: Commands,
