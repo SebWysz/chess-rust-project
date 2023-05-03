@@ -2,7 +2,7 @@
 #![deny(clippy::all)]
 
 
-use bevy::{prelude::*, window::PrimaryWindow, ecs::entity, transform};
+use bevy::{prelude::*, window::PrimaryWindow};
 use std::collections::HashMap;
 
 fn main() {
