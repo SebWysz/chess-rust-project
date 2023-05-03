@@ -266,14 +266,15 @@ pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<Pr
 }
 
 fn mouse_click_system(
-    keyboard_input: Res<Input<KeyCode>>,
-    mouse_button_input: Res<Input<MouseButton>>,
+    keyboard_input : Res<Input<KeyCode>>,
+    mouse_button_input : Res<Input<MouseButton>>,
     white_move : ResMut<WhiteMove>, 
-    window_query: Query<&Window, With<PrimaryWindow>>,
-    piece_query: Query<(Entity, &mut Position, &Piece), Without<CurrentSelectedPiece>>,
-    mut curr_piece_query: Query<(Entity, &mut Transform, &mut Position, &Piece, &CurrentSelectedPiece)>,
-    mut commands: Commands,
-    red_tiles: Query<Entity, With<Redtile>>,
+    in_check : Res<InCheck>,
+    mut commands : Commands,
+    window_query : Query<&Window, With<PrimaryWindow>>,
+    piece_query : Query<(Entity, &mut Position, &Piece), Without<CurrentSelectedPiece>>,
+    mut curr_piece_query : Query<(Entity, &mut Transform, &mut Position, &Piece, &CurrentSelectedPiece)>,
+    red_tiles : Query<Entity, With<Redtile>>,
 ) {
     // Check for 'Escape' key to unselect the current piece
     if keyboard_input.just_pressed(KeyCode::Escape) { //Escape 
@@ -310,6 +311,12 @@ fn mouse_click_system(
                 return;
             }
 
+            if ((in_check.black == true && !piece_qual.colour.is_white()) 
+                || (in_check.white == true && piece_qual.colour.is_white())
+                ) && !piece_qual.piece_type.is_king() {
+                return;
+            }
+            
             if !(valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &piece_query).contains(&mouse_tile)) {
                 // insert error noise or blinking? to signal wrong move
                 return;
@@ -340,7 +347,10 @@ fn mouse_click_system(
             }
         },
         // no piece picked up
-        Err(_) => 
+        Err(_) => {
+            if in_check.black || in_check.white {
+                commands.insert_resource(InCheck { black: false, white: false });
+            }
             // if piece occupies the square, pick piece "up"
             for (entity, position, piece_qual) in piece_query.into_iter() {
                 if position.x != mouse_tile[0] || position.y != mouse_tile[1] { 
@@ -351,9 +361,27 @@ fn mouse_click_system(
                 // Show tiles able to move onto
                 spawn_red_tile(&mut commands, mouse_tile[0], mouse_tile[1], horiz_displacement, vert_displacement);
                 for valid_pos in valid_tiles(position.x, position.y, piece_qual, &piece_query) {
+                    for (_king_entity, king_position, king_qual) in piece_query.into_iter() {
+                        if !piece_qual.piece_type.is_king() { continue; }
+                        if !piece_qual.colour.is_different(&king_qual.colour) { continue; }
+                        if king_position.x == valid_pos.x && king_position.y == valid_pos.y {
+                            if ((in_check.black == true && !piece_qual.colour.is_white()) 
+                                || (in_check.white == true && piece_qual.colour.is_white())
+                                ) && valid_tiles(king_position.x, king_position.y, king_qual, &piece_query).is_empty() {
+                                    //PLAYER !piece_qual.color WINS.
+                                    todo!();
+                            }
+                            
+                            match king_qual.colour {
+                                PieceColour::White => commands.insert_resource(InCheck { black: false, white: true }),
+                                PieceColour::Black => commands.insert_resource(InCheck { black: true, white: false })
+                            }
+                        }
+                    }
                     spawn_red_tile(&mut commands, valid_pos.x, valid_pos.y, horiz_displacement, vert_displacement);
                 }
             }
+        }
     }
 }
 
@@ -386,6 +414,12 @@ fn spawn_red_tile(commands : &mut Commands, pos_x : f32, pos_y :f32, horiz_displ
 
 // also have to somehow check that the king is not in check --- TBD
 impl PieceColour {
+    fn is_white(&self) -> bool {
+        match self {
+            PieceColour::White => true,
+            PieceColour::Black => false,
+        }
+    }
     fn is_different(&self, other: &PieceColour) -> bool {
         match (self, other) {
             (PieceColour::White, PieceColour::Black) => true,
@@ -394,6 +428,16 @@ impl PieceColour {
         }
     }
 }
+
+impl PieceType {
+    fn is_king(&self) -> bool {
+        match self {
+            PieceType::King => true,
+            _ => false,
+        }
+    }
+}
+
 fn valid_moves_for_directions(
     x_curr: f32,
     y_curr: f32,
