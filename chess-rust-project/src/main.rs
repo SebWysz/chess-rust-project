@@ -1,7 +1,9 @@
 //Activate Clippy, helps with proper formatting
 #![deny(clippy::all)]
 
-use bevy::{prelude::*, window::PrimaryWindow};
+
+use bevy::{prelude::*, window::PrimaryWindow, ecs::entity, transform};
+use std::collections::HashMap;
 
 fn main() {
     App::new()
@@ -34,7 +36,7 @@ struct Piece {
     colour : PieceColour,
     piece_type : PieceType,
 }
-
+#[derive(PartialEq)]
 enum PieceColour {
     White,
     Black,
@@ -274,7 +276,7 @@ fn mouse_click_system(
     red_tiles: Query<Entity, With<Redtile>>,
 ) {
     // Check for 'Escape' key to unselect the current piece
-    if keyboard_input.just_pressed(KeyCode::Escape) {
+    if keyboard_input.just_pressed(KeyCode::Escape) { //Escape 
         unselect_current_piece(curr_piece_query, commands, red_tiles);
         return;
     }
@@ -402,6 +404,12 @@ fn valid_moves_for_directions(
 ) -> Vec<Vec2> {
     let mut to_return = vec![];
 
+    // Create a hashmap where key is the position and value is the color of the piece at that position
+    let mut positions = HashMap::new();
+    for (_ent, pos, piece) in piece_query.iter() {
+        positions.insert((pos.x as usize, pos.y as usize), &piece.colour);
+    }
+
     for &(dx, dy) in directions {
         for i in 1..=max_distance {
             let x_new = x_curr + (i as f32) * dx;
@@ -411,30 +419,29 @@ fn valid_moves_for_directions(
                 break;
             }
 
-            let mut piece_at_tile = false;
-            for (_ent, pos, parse_piece) in piece_query.iter() {
-                if pos.x != x_new || pos.y != y_new {
-                    continue;
-                }
+            let x_new_usize = x_new as usize;
+            let y_new_usize = y_new as usize;
 
-                if piece.colour.is_different(&parse_piece.colour) {
+            match positions.get(&(x_new_usize, y_new_usize)) {
+                Some(colour) if *colour == &piece.colour => {
+                    // If there is a piece of the same color at the position, stop checking in this direction
+                    break;
+                }
+                Some(_) => {
+                    // If there is a piece of a different color at the position, add it to valid moves
+                    to_return.push(Vec2::new(x_new, y_new));
+                    break;
+                }
+                None => {
+                    // If there is no piece at the position, add it to valid moves
                     to_return.push(Vec2::new(x_new, y_new));
                 }
-                piece_at_tile = true;
-                break;
-            }
-
-            if !piece_at_tile {
-                to_return.push(Vec2::new(x_new, y_new));
-            } else {
-                break;
             }
         }
     }
 
     to_return
 }
-
 fn valid_tiles(
     x_curr: f32,
     y_curr: f32,
@@ -529,36 +536,36 @@ fn valid_tiles(
                     start_rank = 6.;
                 }
             }
-
+        
             let y_new = y_curr + direction;
             if y_new >= 0. && y_new < 8. {
                 let positions = &[(x_curr, y_new), (x_curr + 1., y_new), (x_curr - 1., y_new)];
-
+        
                 for &(x_new, y_new) in positions {
                     if x_new < 0. || x_new >= 8. {
                         continue;
                     }
-
+        
                     let mut piece_at_tile = false;
                     for (_ent, pos, parse_piece) in piece_query.iter() {
                         if pos.x != x_new || pos.y != y_new {
                             continue;
                         }
-                        // Logic needs fixing, only takes same color pieces, not opposing
-                        if piece.colour.is_different(&parse_piece.colour) {
-                            piece_at_tile = true;
-                        } else {
+                        // Check for diagonal capture moves
+                        if x_new != x_curr && piece.colour.is_different(&parse_piece.colour) {
                             to_return.push(Vec2::new(x_new, y_new));
                         }
+                        piece_at_tile = true;
                         break;
                     }
-
+        
+                    // Check for vertical non-capture moves
                     if !piece_at_tile && x_new == x_curr {
                         to_return.push(Vec2::new(x_new, y_new));
                     }
                 }
             }
-
+        
             if y_curr == start_rank {
                 let y_new = y_curr + 2. * direction;
                 if y_new >= 0. && y_new < 8. {
