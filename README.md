@@ -33,9 +33,9 @@ How objects interact with each other.
 How to display the board and working with user mouse input.  
 
 ##### Currently Missing Features
-En passant
-Check
-Check Mate
-Stalemate
-Pawn Promotion
+En passant  
+Check  
+Check Mate  
+Stalemate  
+Pawn Promotion  
 
