@@ -31,3 +31,11 @@ If we happen to be on schedule, we may look into a timer function for each playe
 Learning how to work with a UI in Rust.  
 How objects interact with each other.  
 How to display the board and working with user mouse input.  
+
+##### Currently Missing Features
+En passant
+Check
+Check Mate
+Stalemate
+Pawn Promotion
+
