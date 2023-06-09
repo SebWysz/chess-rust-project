@@ -4,7 +4,7 @@ target/debug/*
 target/*
 *.exe
 *.pdb
-*.json
+**/*.json
 *.debug
 
 
