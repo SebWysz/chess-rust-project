@@ -330,4 +330,4 @@ pub fn in_check_valid_tiles(
         }
         return to_return;
 }
-// this fn don't work
+// discovered check needs to be implemented
