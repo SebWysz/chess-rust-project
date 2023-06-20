@@ -1,7 +1,7 @@
 #![deny(clippy::all)]
 
 mod bevy_fns;
-use bevy_fns::array::structs::{InCheck, WhiteMove};
+use bevy_fns::array::ArrayBoard;
 use bevy_fns::{setup_board, spawn_camera, mouse_click_system};
 
 use bevy::prelude::*; 
@@ -12,11 +12,7 @@ fn main() {
         .add_startup_system(spawn_camera)
         .add_startup_system(setup_board)
         .add_system(mouse_click_system)
-        .insert_resource(WhiteMove(true))
-        .insert_resource(InCheck {
-            black: false,
-            white: false,
-        })
+        .insert_resource(ArrayBoard { ..Default::default() }) 
         .run();
 }
 

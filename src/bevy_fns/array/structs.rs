@@ -3,12 +3,6 @@ use bevy::prelude::*;
 #[derive(Resource)]
 pub struct WhiteMove(pub bool);
 
-#[derive(Resource)]
-pub struct InCheck {
-    pub black: bool,
-    pub white: bool,
-}
-
 #[derive(Component)]
 pub struct CurrentSelectedPiece;
 
@@ -20,6 +14,7 @@ pub struct Position {
 #[derive(Component)]
 pub struct Redtile;
 
+#[derive(Clone, Copy)]
 pub enum PieceType {
     Pawn,
     King,
@@ -29,12 +24,13 @@ pub enum PieceType {
     Knight,
 }
 
+#[derive(Clone, Copy, Debug)]
 pub enum PieceColour {
     White,
     Black,
 }
 
-#[derive(Component)]
+#[derive(Component, Clone, Copy)]
 pub struct Piece {
     pub colour: PieceColour,
     pub piece_type: PieceType,
@@ -61,6 +57,12 @@ impl PieceColour {
             (PieceColour::White, PieceColour::Black) => true,
             (PieceColour::Black, PieceColour::White) => true,
             _ => false,
+        }
+    }
+    pub fn opposite(&self) -> PieceColour {
+        match self {
+            PieceColour::White => PieceColour::Black,
+            PieceColour::Black => PieceColour::White,
         }
     }
 }
