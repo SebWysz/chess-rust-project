@@ -298,14 +298,8 @@ pub fn in_check_valid_tiles(
 ) -> Vec<Vec2> {
         let mut to_return : Vec<Vec2> = vec![];
         let colour_in_check = array_board.in_check.unwrap(); 
-        let mut king_tile : Vec2 = Vec2::new(-1., -1.);
-        for (x, file) in array_board.board.iter().enumerate() {
-            for (y, tile) in file.into_iter().enumerate() {
-                if tile.is_some_and(|tile_piece| (!tile_piece.colour.is_different(&colour_in_check) && tile_piece.piece_type.is_king())) {
-                    king_tile = Vec2::new(x as f32, y as f32);
-                }
-            }
-        }
+        let king_tile : Vec2 = fetch_king_tile(&colour_in_check, array_board);
+
         for tile in valid_tiles(x_curr, y_curr, piece, array_board) {
             let mut temp_board = array_board.clone();
             temp_board.move_piece((x_curr, y_curr), (tile.x, tile.y));
@@ -331,3 +325,15 @@ pub fn in_check_valid_tiles(
         return to_return;
 }
 // discovered check needs to be implemented
+
+pub fn fetch_king_tile(colour: &PieceColour, array_board: &ArrayBoard) -> Vec2 {
+    let mut king_tile : Vec2 = Vec2::new(-1., -1.);
+    for (x, file) in array_board.board.iter().enumerate() {
+        for (y, tile) in file.into_iter().enumerate() {
+            if tile.is_some_and(|tile_piece| (!tile_piece.colour.is_different(&colour) && tile_piece.piece_type.is_king())) {
+                king_tile = Vec2::new(x as f32, y as f32);
+            }
+        }
+    }
+    return king_tile;
+}

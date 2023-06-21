@@ -1,9 +1,9 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
 pub mod array;
-use array::structs::{Piece, PieceColour, PieceType, Position, WhiteMove, CurrentSelectedPiece, Redtile};
+use array::structs::{Piece, PieceColour, PieceType, Position, CurrentSelectedPiece, Redtile};
 
-use self::array::{valid_tiles, ArrayBoard, in_check_valid_tiles};
+use self::array::{valid_tiles, ArrayBoard, in_check_valid_tiles, fetch_king_tile};
 
 const TILE_SIZE: f32 = 80.0;
 const BOARD_SIZE: usize = 8;
@@ -388,14 +388,8 @@ pub fn mouse_click_system(
             }
             array_board.swap_turn(); 
 
-            let mut king_tile : Vec2 = Vec2::new(-1., -1.);
-            for (x, file) in array_board.board.iter().enumerate() {
-                for (y, tile) in file.into_iter().enumerate() {
-                    if tile.is_some_and(|piece| piece.colour.is_different(&piece_qual.colour) && piece.piece_type.is_king()) {
-                        king_tile = Vec2::new(x as f32, y as f32);
-                    }
-                }
-            }
+            let king_tile : Vec2 = fetch_king_tile(&piece_qual.colour, &array_board);
+            
             array_board.in_check = None;
             if valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &array_board).contains(&king_tile) {
                 array_board.in_check = Some(piece_qual.colour.opposite());
