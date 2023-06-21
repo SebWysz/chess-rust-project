@@ -1,8 +1,5 @@
 use bevy::prelude::*; 
 
-#[derive(Resource)]
-pub struct WhiteMove(pub bool);
-
 #[derive(Component)]
 pub struct CurrentSelectedPiece;
 

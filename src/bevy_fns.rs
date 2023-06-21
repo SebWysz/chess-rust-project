@@ -3,7 +3,7 @@ use bevy::{prelude::*, window::PrimaryWindow};
 pub mod array;
 use array::structs::{Piece, PieceColour, PieceType, Position, CurrentSelectedPiece, Redtile};
 
-use self::array::{valid_tiles, ArrayBoard, in_check_valid_tiles, fetch_king_tile};
+use self::array::{valid_tiles, ArrayBoard, in_check_valid_tiles, fetch_king_tile, can_take_king};
 
 const TILE_SIZE: f32 = 80.0;
 const BOARD_SIZE: usize = 8;
@@ -387,15 +387,11 @@ pub fn mouse_click_system(
                 }
             }
             array_board.swap_turn(); 
-
-            let king_tile : Vec2 = fetch_king_tile(&piece_qual.colour.opposite(), &array_board);
-            
+ 
             array_board.in_check = None;
-            if valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &array_board, false).contains(&king_tile) {
+            if can_take_king((curr_pos.x, curr_pos.y), (curr_pos.x, curr_pos.y), &piece_qual.colour.opposite(), &array_board) {
                 array_board.in_check = Some(piece_qual.colour.opposite());
             }
-            info!("Who in check: {:?}", array_board.in_check);
-            info!("king tile: {:?}", king_tile);
         }
         // no piece picked up
         Err(_) => {
