@@ -14,7 +14,7 @@ Currently working on a check implementation by creating an array structure that 
 En passant  
 Check Mate (just an indicator)  
 Stalemate (same as above)  
-Discovered check and pinning a piece  
+Discovered check 
 Pawn Promotion  
 Dragging pieces (instead of only clicking to move)  
 Signal to error a wrong tile click... or signal you're in check  

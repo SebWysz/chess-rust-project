@@ -1,10 +1,7 @@
 pub mod structs;
 
-
 use bevy::prelude::{Vec2, Resource};
 use structs::{Piece, PieceColour, PieceType};
-
-use crate::bevy_fns::array;
 
 #[derive(Resource, Clone)]
 pub struct ArrayBoard {
@@ -127,10 +124,12 @@ fn valid_moves_for_directions(
     directions: &[(f32, f32)],
     max_distance: usize,
     array_board: &ArrayBoard,
+    check_for_pin: bool,
 ) -> Vec<Vec2> {
     let mut to_return = vec![];
 
     let curr_piece = array_board.board[x_curr as usize][y_curr as usize].as_ref().unwrap();
+    let king_tile : Vec2 = fetch_king_tile(&curr_piece.colour, array_board);
 
     for &(dx, dy) in directions {
         for i in 1..=max_distance {
@@ -140,7 +139,10 @@ fn valid_moves_for_directions(
             if x_new < 0. || x_new >= 8. || y_new < 0. || y_new >= 8. {
                 break;
             }
-
+            //Pinned piece  
+            if !curr_piece.piece_type.is_king() && check_for_pin && can_take_king((x_curr, y_curr), (x_new, y_new), &curr_piece.colour, array_board) { 
+                continue;
+            }
             match array_board.board[x_new as usize][y_new as usize].as_ref() {
                 Some(piece) if piece.colour.is_different(&curr_piece.colour) => {
                     to_return.push(Vec2::new(x_new, y_new));
@@ -160,6 +162,7 @@ pub fn valid_tiles(
     y_curr: f32,
     piece: &Piece,
     array_board: &ArrayBoard,
+    check_for_pin: bool,
 ) -> Vec<Vec2> {
     let mut to_return: Vec<Vec2> = vec![];
 
@@ -176,7 +179,7 @@ pub fn valid_tiles(
                 (-1., -1.),
             ];
             to_return =
-                valid_moves_for_directions(x_curr, y_curr, directions, 1, array_board);
+                valid_moves_for_directions(x_curr, y_curr, directions, 1, array_board, check_for_pin);
         }
         PieceType::Queen => {
             let directions = &[
@@ -190,17 +193,17 @@ pub fn valid_tiles(
                 (-1., -1.),
             ];
             to_return =
-                valid_moves_for_directions(x_curr, y_curr, directions, 7, array_board);
+                valid_moves_for_directions(x_curr, y_curr, directions, 7, array_board, check_for_pin);
         }
         PieceType::Bishop => {
             let directions = &[(1., 1.), (1., -1.), (-1., 1.), (-1., -1.)];
             to_return =
-                valid_moves_for_directions(x_curr, y_curr, directions, 7, array_board);
+                valid_moves_for_directions(x_curr, y_curr, directions, 7, array_board, check_for_pin);
         }
         PieceType::Rook => {
             let directions = &[(1., 0.), (-1., 0.), (0., 1.), (0., -1.)];
             to_return =
-                valid_moves_for_directions(x_curr, y_curr, directions, 7, array_board);
+                valid_moves_for_directions(x_curr, y_curr, directions, 7, array_board, check_for_pin);
         }
         PieceType::Knight => {
             let knight_moves = &[
@@ -219,6 +222,10 @@ pub fn valid_tiles(
                 let y_new = y_curr + dy;
 
                 if x_new < 0. || x_new >= 8. || y_new < 0. || y_new >= 8. {
+                    continue;
+                }
+
+                if !curr_piece.piece_type.is_king() && check_for_pin && can_take_king((x_curr, y_curr), (x_new, y_new), &curr_piece.colour, array_board) { 
                     continue;
                 }
 
@@ -256,7 +263,11 @@ pub fn valid_tiles(
                     if x_new < 0. || x_new >= 8. {
                         continue;
                     }
-                    
+
+                    if !curr_piece.piece_type.is_king() && check_for_pin && can_take_king((x_curr, y_curr), (x_new, y_new), &curr_piece.colour, array_board) { 
+                        continue;
+                    }
+
                     match array_board.board[x_new as usize][y_new as usize].as_ref() {
                         Some(piece) if piece.colour.is_different(&curr_piece.colour) => {
                             if x_new == x_curr {  continue; }
@@ -300,31 +311,29 @@ pub fn in_check_valid_tiles(
         let colour_in_check = array_board.in_check.unwrap(); 
         let king_tile : Vec2 = fetch_king_tile(&colour_in_check, array_board);
 
-        for tile in valid_tiles(x_curr, y_curr, piece, array_board) {
+        for tile in valid_tiles(x_curr, y_curr, piece, array_board, true) {
             let mut temp_board = array_board.clone();
             temp_board.move_piece((x_curr, y_curr), (tile.x, tile.y));
             let king_tile2 = if array_board.board[x_curr as usize][y_curr as usize].unwrap().piece_type.is_king() { Vec2::new(tile.x as f32, tile.y as f32)} else { king_tile };
             //test piece moved by colour in check
             //see if a move can take colour in check's king
-            let mut can_take_king = false;
             for (x, file) in temp_board.board.iter().enumerate() {
                 for (y, curr_piece) in file.into_iter().enumerate() {
                     if curr_piece.is_none() { continue; }
                     if !curr_piece.as_ref().unwrap().colour.is_different(&colour_in_check) {
                         continue;
                     }
-                    if valid_tiles(x as f32, y as f32, &curr_piece.unwrap(), &temp_board).contains(&king_tile2) {
-                            can_take_king = true;
+                    if valid_tiles(x as f32, y as f32, &curr_piece.unwrap(), &temp_board, true).contains(&king_tile2) {
+                        ();
                     }
                 }
             }
-            if !can_take_king {
+            if !can_take_king((x_curr, y_curr), (tile.x, tile.y), &colour_in_check, array_board) {
                 to_return.push(Vec2::new(tile.x as f32, tile.y as f32));
             }
         }
         return to_return;
 }
-// discovered check needs to be implemented
 
 pub fn fetch_king_tile(colour: &PieceColour, array_board: &ArrayBoard) -> Vec2 {
     let mut king_tile : Vec2 = Vec2::new(-1., -1.);
@@ -336,4 +345,22 @@ pub fn fetch_king_tile(colour: &PieceColour, array_board: &ArrayBoard) -> Vec2 {
         }
     }
     return king_tile;
+}
+
+pub fn can_take_king((x_curr, y_curr) : (f32, f32), (x_new, y_new) : (f32, f32), colour_of_king: &PieceColour, array_board: &ArrayBoard) -> bool { 
+    let king_tile = if array_board.board[x_curr as usize][y_curr as usize].unwrap().piece_type.is_king() { Vec2::new(x_new as f32, y_new as f32)} else { fetch_king_tile(colour_of_king, array_board) };
+    let mut temp_board = array_board.clone();
+    temp_board.move_piece((x_curr, y_curr), (x_new, y_new));
+    for (x, file) in temp_board.board.iter().enumerate() {
+        for (y, p_piece) in file.into_iter().enumerate() {
+            if p_piece.is_none() { continue; }
+            if !p_piece.as_ref().unwrap().colour.is_different(colour_of_king) {
+                continue;
+            }
+            if valid_tiles(x as f32, y as f32, &p_piece.unwrap(), &temp_board, false).contains(&king_tile) {
+                    return true;
+            }
+        }
+    }
+    return false;
 }

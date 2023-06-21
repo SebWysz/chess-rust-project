@@ -345,7 +345,7 @@ pub fn mouse_click_system(
     match curr_piece_query.get_single_mut() {
         // has piece picked up
         Ok((curr_entity, mut curr_trans, mut curr_pos, piece_qual, _curr_sel_piece)) => {
-            let curr_valid_tiles = if array_board.in_check.is_some() { in_check_valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &array_board) } else { valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &array_board) };
+            let curr_valid_tiles = if array_board.in_check.is_some() { in_check_valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &array_board) } else { valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &array_board, true) };
             if mouse_tile[0] == curr_pos.x && mouse_tile[1] == curr_pos.y || !curr_valid_tiles.contains(&mouse_tile) {
                 deselect_current_piece(curr_piece_query, commands, red_tiles);
                 return;
@@ -388,12 +388,14 @@ pub fn mouse_click_system(
             }
             array_board.swap_turn(); 
 
-            let king_tile : Vec2 = fetch_king_tile(&piece_qual.colour, &array_board);
+            let king_tile : Vec2 = fetch_king_tile(&piece_qual.colour.opposite(), &array_board);
             
             array_board.in_check = None;
-            if valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &array_board).contains(&king_tile) {
+            if valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &array_board, false).contains(&king_tile) {
                 array_board.in_check = Some(piece_qual.colour.opposite());
             }
+            info!("Who in check: {:?}", array_board.in_check);
+            info!("king tile: {:?}", king_tile);
         }
         // no piece picked up
         Err(_) => {
@@ -416,7 +418,7 @@ pub fn mouse_click_system(
                     if array_board.in_check.is_some() && !array_board.in_check.unwrap().is_different(&piece_qual.colour) { 
                         in_check_valid_tiles(position.x, position.y, piece_qual, &array_board) 
                     } else {
-                        valid_tiles(position.x, position.y, piece_qual, &array_board) 
+                        valid_tiles(position.x, position.y, piece_qual, &array_board, true) 
                 }};
                 for valid_pos in curr_valid_tiles {
                     spawn_red_tile(
