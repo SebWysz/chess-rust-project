@@ -3,7 +3,7 @@ use bevy::{prelude::*, window::PrimaryWindow};
 pub mod array;
 use array::structs::{Piece, PieceColour, PieceType, Position, CurrentSelectedPiece, Redtile};
 
-use self::array::{valid_tiles, ArrayBoard, in_check_valid_tiles, fetch_king_tile, can_take_king};
+use self::array::{valid_tiles, ArrayBoard, in_check_valid_tiles, can_take_king};
 
 const TILE_SIZE: f32 = 80.0;
 const BOARD_SIZE: usize = 8;
@@ -293,7 +293,7 @@ pub fn setup_board(
 }
 
 pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
-    let window = window_query.get_single().unwrap();
+    let window = window_query.single();
     commands.spawn(Camera2dBundle {
         transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
         ..default()
@@ -328,8 +328,8 @@ pub fn mouse_click_system(
     }
 
     let window = window_query.get_single().unwrap();
-    let horiz_displacement = window.width() / 2. - TILE_SIZE * 3.5;
-    let vert_displacement = window.height() / 2. - TILE_SIZE * 3.5;
+    let horiz_displacement = (window.width() / 2.) - (TILE_SIZE * 3.5);
+    let vert_displacement = (window.height() / 2.) - (TILE_SIZE * 3.5);
 
     let mouse_tile = find_mouse_tile(window.cursor_position().unwrap(), window);
 
@@ -345,7 +345,8 @@ pub fn mouse_click_system(
     match curr_piece_query.get_single_mut() {
         // has piece picked up
         Ok((curr_entity, mut curr_trans, mut curr_pos, piece_qual, _curr_sel_piece)) => {
-            let curr_valid_tiles = if array_board.in_check.is_some() { in_check_valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &array_board) } else { valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &array_board, true) };
+            let curr_valid_tiles = if array_board.in_check.is_some() { in_check_valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &array_board) } 
+                else { valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &array_board, true) };
             if mouse_tile[0] == curr_pos.x && mouse_tile[1] == curr_pos.y || !curr_valid_tiles.contains(&mouse_tile) {
                 deselect_current_piece(curr_piece_query, commands, red_tiles);
                 return;
@@ -402,7 +403,7 @@ pub fn mouse_click_system(
                 }
                 commands.entity(entity).insert(CurrentSelectedPiece);
 
-                // Show tiles able to move onto
+                // Show tiles able to move onto 
                 spawn_red_tile(
                     &mut commands,
                     mouse_tile[0],
@@ -472,7 +473,7 @@ pub fn spawn_red_tile(
     pos_x: f32,
     pos_y: f32,
     horiz_displacement: f32,
-    vert_displacement: f32,
+    vert_displacement: f32, 
 ) {
     commands.spawn((
         SpriteBundle {
@@ -482,8 +483,8 @@ pub fn spawn_red_tile(
                 ..default()
             },
             transform: Transform::from_xyz(
-                pos_x * TILE_SIZE + horiz_displacement,
-                pos_y * TILE_SIZE + vert_displacement,
+                (pos_x * TILE_SIZE) + horiz_displacement,
+                (pos_y * TILE_SIZE) + vert_displacement,
                 0.,
             ),
             ..default()

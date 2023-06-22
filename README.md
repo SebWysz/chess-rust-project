@@ -16,5 +16,6 @@ Check Mate (just an indicator)
 Stalemate (same as above)  
 Pawn Promotion  
 Dragging pieces (instead of only clicking to move)  
-Signal to error a wrong tile click... or signal you're in check  
 
+### Bugs 
+Weird bug that the red signalling tiles don't appear correctly if you resize the window.
