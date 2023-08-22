@@ -1,9 +1,9 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
 pub mod array;
-use array::structs::{Piece, PieceColour, PieceType, Position, WhiteMove, InCheck, CurrentSelectedPiece, Redtile};
+use array::structs::{Piece, PieceColour, PieceType, Position, CurrentSelectedPiece, Redtile};
 
-use self::array::valid_tiles;
+use self::array::{valid_tiles, ArrayBoard, in_check_valid_tiles, can_take_king};
 
 const TILE_SIZE: f32 = 80.0;
 const BOARD_SIZE: usize = 8;
@@ -293,7 +293,7 @@ pub fn setup_board(
 }
 
 pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
-    let window = window_query.get_single().unwrap();
+    let window = window_query.single();
     commands.spawn(Camera2dBundle {
         transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
         ..default()
@@ -303,8 +303,7 @@ pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<Pr
 pub fn mouse_click_system(
     keyboard_input: Res<Input<KeyCode>>,
     mouse_button_input: Res<Input<MouseButton>>,
-    white_move: ResMut<WhiteMove>,
-    in_check: Res<InCheck>,
+    mut array_board: ResMut<ArrayBoard>,
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
     piece_query: Query<(Entity, &mut Position, &Piece), Without<CurrentSelectedPiece>>,
@@ -329,8 +328,8 @@ pub fn mouse_click_system(
     }
 
     let window = window_query.get_single().unwrap();
-    let horiz_displacement = window.width() / 2. - TILE_SIZE * 3.5;
-    let vert_displacement = window.height() / 2. - TILE_SIZE * 3.5;
+    let horiz_displacement = (window.width() / 2.) - (TILE_SIZE * 3.5);
+    let vert_displacement = (window.height() / 2.) - (TILE_SIZE * 3.5);
 
     let mouse_tile = find_mouse_tile(window.cursor_position().unwrap(), window);
 
@@ -346,27 +345,20 @@ pub fn mouse_click_system(
     match curr_piece_query.get_single_mut() {
         // has piece picked up
         Ok((curr_entity, mut curr_trans, mut curr_pos, piece_qual, _curr_sel_piece)) => {
-            if mouse_tile[0] == curr_pos.x && mouse_tile[1] == curr_pos.y {
+            let curr_valid_tiles = if array_board.in_check.is_some() { in_check_valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &array_board) } 
+                else { valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &array_board, true) };
+            if mouse_tile[0] == curr_pos.x && mouse_tile[1] == curr_pos.y || !curr_valid_tiles.contains(&mouse_tile) {
                 deselect_current_piece(curr_piece_query, commands, red_tiles);
                 return;
             }
 
-            if (white_move.0 == true && piece_qual.colour.is_different(&PieceColour::White))
-                || (white_move.0 == false && piece_qual.colour.is_different(&PieceColour::Black))
+            if (array_board.turn.is_white() && !piece_qual.colour.is_white())
+                || (!array_board.turn.is_white() && piece_qual.colour.is_white())
             {
                 return;
             }
 
-            if ((in_check.black == true && !piece_qual.colour.is_white())
-                || (in_check.white == true && piece_qual.colour.is_white()))
-                && !piece_qual.piece_type.is_king()
-            {
-                return;
-            }
-
-            if !(valid_tiles(curr_pos.x, curr_pos.y, piece_qual, &piece_query)
-                .contains(&mouse_tile))
-            {
+            if !(curr_valid_tiles.contains(&mouse_tile)) {
                 // insert error noise or blinking? to signal wrong move
                 return;
             }
@@ -376,6 +368,8 @@ pub fn mouse_click_system(
                     commands.entity(entity).despawn();
                 }
             }
+
+            array_board.move_piece((curr_pos.x, curr_pos.y), (mouse_tile[0], mouse_tile[1]));
 
             let direction = Vec3::new(
                 (mouse_tile[0] - curr_pos.x) * TILE_SIZE,
@@ -393,20 +387,15 @@ pub fn mouse_click_system(
                     commands.entity(tile).despawn();
                 }
             }
-            if white_move.0 {
-                commands.insert_resource(WhiteMove(false));
-            } else {
-                commands.insert_resource(WhiteMove(true));
+            array_board.swap_turn(); 
+ 
+            array_board.in_check = None;
+            if can_take_king((curr_pos.x, curr_pos.y), (curr_pos.x, curr_pos.y), &piece_qual.colour.opposite(), &array_board) {
+                array_board.in_check = Some(piece_qual.colour.opposite());
             }
         }
         // no piece picked up
         Err(_) => {
-            if in_check.black || in_check.white {
-                commands.insert_resource(InCheck {
-                    black: false,
-                    white: false,
-                });
-            }
             // if piece occupies the square, pick piece "up"
             for (entity, position, piece_qual) in piece_query.into_iter() {
                 if position.x != mouse_tile[0] || position.y != mouse_tile[1] {
@@ -414,7 +403,7 @@ pub fn mouse_click_system(
                 }
                 commands.entity(entity).insert(CurrentSelectedPiece);
 
-                // Show tiles able to move onto
+                // Show tiles able to move onto 
                 spawn_red_tile(
                     &mut commands,
                     mouse_tile[0],
@@ -422,41 +411,13 @@ pub fn mouse_click_system(
                     horiz_displacement,
                     vert_displacement,
                 );
-                for valid_pos in valid_tiles(position.x, position.y, piece_qual, &piece_query) {
-                    for (_king_entity, king_position, king_qual) in piece_query.into_iter() {
-                        if !piece_qual.piece_type.is_king() {
-                            continue;
-                        }
-                        if !piece_qual.colour.is_different(&king_qual.colour) {
-                            continue;
-                        }
-                        if king_position.x == valid_pos.x && king_position.y == valid_pos.y {
-                            if ((in_check.black == true && !piece_qual.colour.is_white())
-                                || (in_check.white == true && piece_qual.colour.is_white()))
-                                && valid_tiles(
-                                    king_position.x,
-                                    king_position.y,
-                                    king_qual,
-                                    &piece_query,
-                                )
-                                .is_empty()
-                            {
-                                //PLAYER !piece_qual.color WINS.
-                                todo!();
-                            }
-
-                            match king_qual.colour {
-                                PieceColour::White => commands.insert_resource(InCheck {
-                                    black: false,
-                                    white: true,
-                                }),
-                                PieceColour::Black => commands.insert_resource(InCheck {
-                                    black: true,
-                                    white: false,
-                                }),
-                            }
-                        }
-                    }
+                let curr_valid_tiles = {
+                    if array_board.in_check.is_some() && !array_board.in_check.unwrap().is_different(&piece_qual.colour) { 
+                        in_check_valid_tiles(position.x, position.y, piece_qual, &array_board) 
+                    } else {
+                        valid_tiles(position.x, position.y, piece_qual, &array_board, true) 
+                }};
+                for valid_pos in curr_valid_tiles {
                     spawn_red_tile(
                         &mut commands,
                         valid_pos.x,
@@ -468,7 +429,8 @@ pub fn mouse_click_system(
             }
         }
     }
-}
+} 
+
 
 fn deselect_current_piece(
     mut curr_piece_query: Query<(
@@ -511,7 +473,7 @@ pub fn spawn_red_tile(
     pos_x: f32,
     pos_y: f32,
     horiz_displacement: f32,
-    vert_displacement: f32,
+    vert_displacement: f32, 
 ) {
     commands.spawn((
         SpriteBundle {
@@ -521,8 +483,8 @@ pub fn spawn_red_tile(
                 ..default()
             },
             transform: Transform::from_xyz(
-                pos_x * TILE_SIZE + horiz_displacement,
-                pos_y * TILE_SIZE + vert_displacement,
+                (pos_x * TILE_SIZE) + horiz_displacement,
+                (pos_y * TILE_SIZE) + vert_displacement,
                 0.,
             ),
             ..default()
