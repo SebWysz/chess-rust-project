@@ -1,5 +1,5 @@
 pub mod structs;
-use bevy::prelude::Vec2;
+use bevy::prelude::{Vec2, Query};
 use structs::{Piece, PieceColour, PieceType};
 
 use std::collections::HashMap;
@@ -56,7 +56,7 @@ impl ArrayBoard {
                     Some(Piece::new(PieceColour::Black, PieceType::Bishop)),
                     Some(Piece::new(PieceColour::Black, PieceType::Knight)),
                     Some(Piece::new(PieceColour::Black, PieceType::Rook)),
-                ],
+                ]
             ],
             turn: PieceColour::White
         }
