@@ -2,6 +2,7 @@
 ### Contributors:  
 Sebastian Wyszynski : wyszynskiseb@gmail.com  
 Samuel Tinubu : stinubu2@illinois.edu  
+Mark Raskin : mrask2@illinois.edu
 
 ### Overview: 
 We are trying to implement chess in Rust using the Bevy game engine.  
